@@ -1,4 +1,4 @@
-# NOTE: Install the "PressStart2P-Regular.ttf" font on your system and install the "playsound" module using pip prior to running the game.
+# NOTE: Install the "PressStart2P-Regular.ttf" font (stored in the assets folder) on your system and install the "playsound" module using pip prior to running the game.
 # Assets from Itch.io - https://halestorm512.itch.io/chrome-dinosaur-game-remake
 # Sound Effects from ___ - _______________
 # Font from Google Fonts - https://fonts.google.com/specimen/Press+Start+2P
@@ -107,27 +107,27 @@ def update():
         turtle.ontimer(update_score, 1)
 
         if DUCK and dino.ycor() == -200:
-            if SHAPE == "DinoDuckLeftUp.gif": # Change turtle leg
-                SHAPE = "DinoDuckRightUp.gif"
-                dino.shape("DinoDuckRightUp.gif")
+            if SHAPE == "assets/DinoDuckLeftUp.gif": # Change turtle leg
+                SHAPE = "assets/DinoDuckRightUp.gif"
+                dino.shape("assets/DinoDuckRightUp.gif")
             else:
-                SHAPE = "DinoDuckLeftUp.gif"
-                dino.shape("DinoDuckLeftUp.gif")
+                SHAPE = "assets/DinoDuckLeftUp.gif"
+                dino.shape("assets/DinoDuckLeftUp.gif")
         else:
             if JUMP:
-                SHAPE = "DinoIdle.gif"
-                dino.shape("DinoIdle.gif")
-            elif SHAPE == "DinoLeftUp.gif": # Change turtle leg
-                SHAPE = "DinoRightUp.gif"
-                dino.shape("DinoRightUp.gif")
+                SHAPE = "assets/DinoIdle.gif"
+                dino.shape("assets/DinoIdle.gif")
+            elif SHAPE == "assets/DinoLeftUp.gif": # Change turtle leg
+                SHAPE = "assets/DinoRightUp.gif"
+                dino.shape("assets/DinoRightUp.gif")
             else:
-                SHAPE = "DinoLeftUp.gif"
-                dino.shape("DinoLeftUp.gif")
+                SHAPE = "assets/DinoLeftUp.gif"
+                dino.shape("assets/DinoLeftUp.gif")
 
-        if bird.shape() == "BirdFlapUp.gif":
-            bird.shape("BirdFlapDown.gif")
+        if bird.shape() == "assets/BirdFlapUp.gif":
+            bird.shape("assets/BirdFlapDown.gif")
         else:
-            bird.shape("BirdFlapUp.gif")
+            bird.shape("assets/BirdFlapUp.gif")
 
     if JUMP:
         SPEED = SPEED - 13.2 # Gravity
@@ -221,7 +221,7 @@ def restart(x, y):
     UPDATES = 0
     SPEED = 0
     GAME_SPEED = 20
-    SHAPE = "DinoIdle.gif"
+    SHAPE = "assets/DinoIdle.gif"
 
     turtle.tracer(0,0)
     scorepen.clear()
@@ -261,26 +261,26 @@ def init_game():
     tutorialpen.color("gray")
 
     turtle.tracer(0,0)
-    paths.append(new_shape("path.gif")) # Initialise first path sprite
+    paths.append(new_shape("assets/path.gif")) # Initialise first path sprite
     paths[0].goto(0, -300)
-    paths.append(new_shape("path.gif")) # Initialise second path sprite
+    paths.append(new_shape("assets/path.gif")) # Initialise second path sprite
     paths[1].goto(1000, -300)
-    dino = new_shape("DinoIdle.gif") # Setup dino
+    dino = new_shape("assets/DinoIdle.gif") # Setup dino
     dino.goto(-400, -200)
-    bird = new_shape("BirdFlapUp.gif") # Setup bird
+    bird = new_shape("assets/BirdFlapUp.gif") # Setup bird
     bird.goto(-550, -120)
-    cacti.append(new_shape("1Big.gif"))
+    cacti.append(new_shape("assets/1Big.gif"))
     cacti[0].goto(2000, -250)
-    cacti.append(new_shape("1Big.gif"))
+    cacti.append(new_shape("assets/1Big.gif"))
     cacti[1].goto(2500, -250)
     cacti.append(new_shape(random.choice(cacti_gifs)))
     cacti[2].goto(3000, -250)
 
-    cloud = new_shape("cloud.gif")
+    cloud = new_shape("assets/cloud.gif")
     cloud.goto(random.randint(-300, 400), random.randint(250, 450)) # Put cloud in random position
     stars = {}
     for i in range(1,5):
-        star = new_shape("star.gif")
+        star = new_shape("assets/star.gif")
         star.goto(random.randint(0, 500), random.randint(0, 500)) # Put star in random position
         stars[star] = i # 'i' will be the speed of the star
 
@@ -312,14 +312,14 @@ def storyline(part=1):
         tutorialpen.write("Click anywhere to skip.", align="center", font=("Press Start 2P", 15, "normal"))
         tutorialpen.goto(490, 350)
 
-        path = new_shape("path.gif")
+        path = new_shape("assets/path.gif")
         path.goto(0, -300)
 
-        dino = new_shape("DinoIdle.gif")
+        dino = new_shape("assets/DinoIdle.gif")
         dino.goto(-400, -200)
-        babydino = new_shape("BabyDinoIdle.gif")
+        babydino = new_shape("assets/BabyDinoIdle.gif")
         babydino.goto(-330, -232)
-        kingbird = new_shape("KingBirdFlapDownRight.gif")
+        kingbird = new_shape("assets/KingBirdFlapDownRight.gif")
         kingbird.goto(-560, 550)
         turtle.tracer(1,1)
         turtle.ontimer(lambda: storyline(part=2), 2000)
@@ -329,11 +329,11 @@ def storyline(part=1):
         for i in range(200):
             babydino.forward(1)
             if i % 20 == 0:
-                if babydino.shape() == "BabyDinoRightUp.gif":
-                    babydino.shape("BabyDinoLeftUp.gif")
+                if babydino.shape() == "assets/BabyDinoRightUp.gif":
+                    babydino.shape("assets/BabyDinoLeftUp.gif")
                 else:
-                    babydino.shape("BabyDinoRightUp.gif")
-        babydino.shape("BabyDinoIdle.gif")
+                    babydino.shape("assets/BabyDinoRightUp.gif")
+        babydino.shape("assets/BabyDinoIdle.gif")
         turtle.ontimer(lambda: storyline(part=3), 3500)
     elif part == 3:
         turtle.tracer(1,1) # King bird swoops down on baby dino
@@ -346,10 +346,10 @@ def storyline(part=1):
             babydino.goto(babydino.xcor() + 1, babydino.ycor() + 0.75)
             kingbird.goto(kingbird.xcor() + 1, kingbird.ycor() + 0.75)
             if i % 150 == 0: # Flap wing of king bird
-                if kingbird.shape() == "KingBirdFlapUpRight.gif":
-                    kingbird.shape("KingBirdFlapDownRight.gif")
+                if kingbird.shape() == "assets/KingBirdFlapUpRight.gif":
+                    kingbird.shape("assets/KingBirdFlapDownRight.gif")
                 else:
-                    kingbird.shape("KingBirdFlapUpRight.gif")
+                    kingbird.shape("assets/KingBirdFlapUpRight.gif")
             turtle.tracer(1,1)
         turtle.tracer(0,0)
 
@@ -372,12 +372,12 @@ if __name__ == '__main__':
     turtle.hideturtle()
     turtle.bgcolor("light gray")
 
-    dino_gifs = ['DinoIdle.gif', 'DinoLeftUp.gif', 'DinoRightUp.gif', 'DinoDuckLeftUp.gif', 'DinoDuckRightUp.gif']
-    bird_gifs = ["BirdFlapDown.gif", "BirdFlapUp.gif"]
-    cacti_gifs = ['1Big.gif', '1Small.gif', '2Big.gif', '2Big1Small1Big.gif', '2Small.gif', '3Big.gif', '3Small.gif']
-    bg_gifs = ["cloud.gif", "star.gif"]
-    storyline_gifs = ["BabyDinoIdle.gif", "KingBirdFlapDownLeft.gif", "KingBirdFlapDownRight.gif", "KingBirdFlapUpRight.gif", "KingBirdFlapUpLeft.gif", "BabyDinoLeftUp.gif", "BabyDinoRightUp.gif"]
-    for gif in cacti_gifs + dino_gifs + bird_gifs + bg_gifs + storyline_gifs + ["path.gif"]:
+    dino_gifs = ['assets/DinoIdle.gif', 'assets/DinoLeftUp.gif', 'assets/DinoRightUp.gif', 'assets/DinoDuckLeftUp.gif', 'assets/DinoDuckRightUp.gif']
+    bird_gifs = ["assets/BirdFlapDown.gif", "assets/BirdFlapUp.gif"]
+    cacti_gifs = ['assets/1Big.gif', 'assets/1Small.gif', 'assets/2Big.gif', 'assets/2Big1Small1Big.gif', 'assets/2Small.gif', 'assets/3Big.gif', 'assets/3Small.gif']
+    bg_gifs = ["assets/cloud.gif", "assets/star.gif"]
+    storyline_gifs = ["assets/BabyDinoIdle.gif", "assets/KingBirdFlapDownLeft.gif", "assets/KingBirdFlapDownRight.gif", "assets/KingBirdFlapUpRight.gif", "assets/KingBirdFlapUpLeft.gif", "assets/BabyDinoLeftUp.gif", "assets/BabyDinoRightUp.gif"]
+    for gif in cacti_gifs + dino_gifs + bird_gifs + bg_gifs + storyline_gifs + ["assets/path.gif"]:
         turtle.register_shape(gif)
 
     SKIPPED = False
