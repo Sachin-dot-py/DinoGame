@@ -70,8 +70,8 @@ def update_score():
 
 def update():
     start = time.time()
-    global dino, bird, cacti, paths, BIRD_YCORS, GAME_SPEED, JUMP, SPEED, SHAPE, UPDATES, SCORE, FIRSTGAME
-    GAME_SPEED = (5 + SCORE % 1000 // 300) # Game speed starts from slow every 1000 points so that game speed does not get too fast and unplayable
+    global dino, bird, cacti, paths, BIRD_YCORS, GAME_SPEED, JUMP, SPEED, SHAPE, UPDATES, SCORE, FIRSTGAME, stars, cloud, CLOUDSPEED
+    if SCORE <= 1000: GAME_SPEED = (5 + SCORE // 300) # Caps game speed at 8 so that the game does not get too fast and unplayable
     turtle.tracer(0,0)
     for path in paths:
         path.setx(path.xcor() - GAME_SPEED)
@@ -166,10 +166,16 @@ def update():
             cactus.shape(random.choice(cacti_gifs))
             cacti.append(cacti.pop(cacti.index(cactus)))
 
-    cloud.setx(cloud.xcor() - 2)
+    cloud.setx(cloud.xcor() - CLOUDSPEED)
     if cloud.xcor() <= -530:
         cloud.setx(530)
         cloud.sety(random.randint(250, 450))
+        CLOUDSPEED = random.randint(1,4)
+
+    for star, speed in stars.items():
+        if star.xcor() < -520: # Reset stars that exited the screen
+            star.goto(520, random.randint(0, 500))
+        star.setx(star.xcor() - speed) # Move stars
 
     turtle.tracer(1,1)
     UPDATES += 1
@@ -206,11 +212,12 @@ def gameover():
     turtle.listen()
 
 def restart(x, y):
-    global paths, dino, bird, cacti, cacti_gifs, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, gameoverpen
+    global paths, dino, bird, cacti, cacti_gifs, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, gameoverpen, CLOUDSPEED, stars
     turtle.onscreenclick(None)
     SCORE = 0
     JUMP = False
     DUCK = False
+    CLOUDSPEED = random.randint(1,4)
     UPDATES = 0
     SPEED = 0
     GAME_SPEED = 20
@@ -228,17 +235,20 @@ def restart(x, y):
     cacti[2].shape(random.choice(cacti_gifs))
     cacti[2].goto(3000, -250)
     cloud.goto(random.randint(-300, 400), random.randint(250, 450))
+    for star, speed in stars.items():
+        star.goto(random.randint(0, 500), random.randint(0, 500)) # Put star in random position
     turtle.tracer(1,1)
     update()
 
 def init_game():
-    global paths, dino, bird, cacti, cloud, cacti_gifs, screen, BIRD_YCORS, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, tutorialpen, FIRSTGAME
+    global paths, dino, bird, cacti, cloud, cacti_gifs, screen, BIRD_YCORS, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, tutorialpen, FIRSTGAME, stars, CLOUDSPEED
 
     # Initialise game variables
     SCORE = 0
     JUMP = False
     DUCK = False
     FIRSTGAME = True
+    CLOUDSPEED = random.randint(1,4)
     UPDATES = 0
     SPEED = 0
     GAME_SPEED = 20
@@ -248,6 +258,7 @@ def init_game():
     paths = []
 
     tutorialpen.clear()
+    tutorialpen.color("gray")
 
     turtle.tracer(0,0)
     paths.append(new_shape("path.gif")) # Initialise first path sprite
@@ -264,14 +275,20 @@ def init_game():
     cacti[1].goto(2500, -250)
     cacti.append(new_shape(random.choice(cacti_gifs)))
     cacti[2].goto(3000, -250)
+
     cloud = new_shape("cloud.gif")
     cloud.goto(random.randint(-300, 400), random.randint(250, 450)) # Put cloud in random position
-    turtle.tracer(1,1)
+    stars = {}
+    for i in range(1,5):
+        star = new_shape("star.gif")
+        star.goto(random.randint(0, 500), random.randint(0, 500)) # Put star in random position
+        stars[star] = i # 'i' will be the speed of the star
 
     screen.onkey(jump, "space")
     screen.onkeypress(duck, "Down")
     screen.onkeyrelease(unduck, "Down")
     screen.listen()
+    turtle.tracer(1,1)
     update()
 
 def skip_tutorial(*args):
@@ -356,9 +373,9 @@ if __name__ == '__main__':
     turtle.bgcolor("light gray")
 
     dino_gifs = ['DinoIdle.gif', 'DinoLeftUp.gif', 'DinoRightUp.gif', 'DinoDuckLeftUp.gif', 'DinoDuckRightUp.gif']
-    bird_gifs = ["BirdFlapDown.gif","BirdFlapUp.gif"]
+    bird_gifs = ["BirdFlapDown.gif", "BirdFlapUp.gif"]
     cacti_gifs = ['1Big.gif', '1Small.gif', '2Big.gif', '2Big1Small1Big.gif', '2Small.gif', '3Big.gif', '3Small.gif']
-    bg_gifs = ["cloud.gif", "star.gif", "sun.gif"]
+    bg_gifs = ["cloud.gif", "star.gif"]
     storyline_gifs = ["BabyDinoIdle.gif", "KingBirdFlapDownLeft.gif", "KingBirdFlapDownRight.gif", "KingBirdFlapUpRight.gif", "KingBirdFlapUpLeft.gif", "BabyDinoLeftUp.gif", "BabyDinoRightUp.gif"]
     for gif in cacti_gifs + dino_gifs + bird_gifs + bg_gifs + storyline_gifs + ["path.gif"]:
         turtle.register_shape(gif)
