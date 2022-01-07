@@ -1,12 +1,12 @@
 # NOTE: Install the "PressStart2P-Regular.ttf" font (stored in the assets folder) on your system and install the "playsound" module using pip prior to running the game.
 # Assets from Itch.io - https://halestorm512.itch.io/chrome-dinosaur-game-remake
-# Sound Effects from ___ - _______________
 # Font from Google Fonts - https://fonts.google.com/specimen/Press+Start+2P
 
 import turtle
 import random
-import time
-import playsound # To play sound effects
+import time # For time.time
+import multiprocessing # To playsound in thread to stop it as required
+from playsound import playsound # To play sound effects
 
 def new_shape(file, hide=False):
     t = turtle.Turtle()
@@ -18,6 +18,7 @@ def new_shape(file, hide=False):
 def jump():
     global JUMP, DUCK, SPEED
     if not JUMP:
+        playsound("assets/jump sound.wav", block=False)
         DUCK = False
         JUMP = True
         SPEED = 270
@@ -188,6 +189,8 @@ def update():
         turtle.ontimer(update, 8 - ms_elapsed)
 
 def gameover():
+    p.terminate()
+    playsound("assets/game over.wav", block=False)
     save_high_score()
     turtle.tracer(0,0)
 
@@ -212,7 +215,8 @@ def gameover():
     turtle.listen()
 
 def restart(x, y):
-    global paths, dino, bird, cacti, cacti_gifs, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, gameoverpen, CLOUDSPEED, stars
+    playsound("assets/button pressed.wav", block=False)
+    global paths, dino, bird, cacti, cacti_gifs, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, gameoverpen, CLOUDSPEED, stars, p
     turtle.onscreenclick(None)
     SCORE = 0
     JUMP = False
@@ -238,11 +242,14 @@ def restart(x, y):
     for star, speed in stars.items():
         star.goto(random.randint(0, 500), random.randint(0, 500)) # Put star in random position
     turtle.tracer(1,1)
+    p = multiprocessing.Process(target=playsound, args=("assets/soundtrack.wav",))
+    p.start()
     update()
 
 def init_game():
-    global paths, dino, bird, cacti, cloud, cacti_gifs, screen, BIRD_YCORS, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, tutorialpen, FIRSTGAME, stars, CLOUDSPEED
-
+    global paths, dino, bird, cacti, cloud, cacti_gifs, screen, BIRD_YCORS, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, tutorialpen, FIRSTGAME, stars, CLOUDSPEED, p
+    p = multiprocessing.Process(target=playsound, args=("assets/soundtrack.wav",))
+    p.start()
     # Initialise game variables
     SCORE = 0
     JUMP = False
@@ -292,6 +299,7 @@ def init_game():
     update()
 
 def skip_tutorial(*args):
+    playsound("assets/button pressed.wav", block=False)
     global SKIPPED
     SKIPPED = True
     for t in turtle.turtles(): # Clear everything to start game
@@ -336,6 +344,7 @@ def storyline(part=1):
         babydino.shape("assets/BabyDinoIdle.gif")
         turtle.ontimer(lambda: storyline(part=3), 3500)
     elif part == 3:
+        playsound("assets/run.wav", block=False)
         turtle.tracer(1,1) # King bird swoops down on baby dino
         kingbird.speed(1)
         turtle.delay(8)
@@ -363,12 +372,36 @@ def storyline(part=1):
 
         if not SKIPPED: turtle.ontimer(skip_tutorial, 4000)
 
+def startbtn_clicked(*args):
+    playsound("assets/button pressed.wav", block=False)
+    turtle.tracer(0,0)
+    global background, startbtn, exitbtn
+    background.hideturtle()
+    startbtn.hideturtle()
+    exitbtn.hideturtle()
+    startbtn.onclick(None)
+    exitbtn.onclick(None)
+    storyline()
+
+def title_screen():
+    global background, startbtn, exitbtn
+    turtle.tracer(0,0)
+    background = new_shape("assets/poster.gif")
+    background.goto(0,0)
+    startbtn = new_shape("assets/StartBtn.gif")
+    startbtn.goto(0,-100)
+    startbtn.onrelease(startbtn_clicked)
+    exitbtn = new_shape("assets/ExitBtn.gif")
+    exitbtn.goto(0,-210)
+    exitbtn.onclick(lambda x, y: quit)
+    turtle.tracer(1,1)
+
 if __name__ == '__main__':
     # Setup screen
     screen = turtle.Screen()
     screen.setup(1300, 600)
     screen.setworldcoordinates(-500, -500, 500, 500)
-    screen.title("DINO GAME - 404 Not Found")
+    screen.title("ERROR RUN - 404 Not Found")
     turtle.hideturtle()
     turtle.bgcolor("light gray")
 
@@ -377,9 +410,9 @@ if __name__ == '__main__':
     cacti_gifs = ['assets/1Big.gif', 'assets/1Small.gif', 'assets/2Big.gif', 'assets/2Big1Small1Big.gif', 'assets/2Small.gif', 'assets/3Big.gif', 'assets/3Small.gif']
     bg_gifs = ["assets/cloud.gif", "assets/star.gif"]
     storyline_gifs = ["assets/BabyDinoIdle.gif", "assets/KingBirdFlapDownLeft.gif", "assets/KingBirdFlapDownRight.gif", "assets/KingBirdFlapUpRight.gif", "assets/KingBirdFlapUpLeft.gif", "assets/BabyDinoLeftUp.gif", "assets/BabyDinoRightUp.gif"]
-    for gif in cacti_gifs + dino_gifs + bird_gifs + bg_gifs + storyline_gifs + ["assets/path.gif"]:
+    for gif in cacti_gifs + dino_gifs + bird_gifs + bg_gifs + storyline_gifs + ["assets/path.gif", "assets/poster.gif", "assets/StartBtn.gif", "assets/ExitBtn.gif"]:
         turtle.register_shape(gif)
 
     SKIPPED = False
-    storyline()
+    title_screen()
     turtle.mainloop()
