@@ -9,11 +9,73 @@ import random
 import time  # For time.time
 import multiprocessing  # To play sound in thread to stop it as required
 import os
+
 try:
     from playsound import playsound  # To play sound effects
 except:  # If module is not found on system
     print("The 'playsound' module was not found on your system. Attempting to install the module using pip.")
     os.system("pip install playsound")
+
+SELECTED_MAP = "dino"  # Default map
+ASSETS_MAPPING = {"dino": {
+    'background': ['assets/General/poster.gif'],
+    'text_color_1': 'black',
+    'text_color_2': 'black',
+    'text_color_3': 'gray',
+    'y_level': -200,
+    'soundtrack': 'assets/General/soundtrack.wav',
+    'default_sprite': 'assets/ClassicMap/DinoIdle.gif',
+    'run': ["assets/ClassicMap/DinoLeftUp.gif", "assets/ClassicMap/DinoRightUp.gif"],
+    'duck': ["assets/ClassicMap/DinoDuckLeftUp.gif", "assets/ClassicMap/DinoDuckRightUp.gif"],
+    'jump': ["assets/ClassicMap/DinoIdle.gif"],
+    'bird': ["assets/ClassicMap/BirdFlapUp.gif", "assets/ClassicMap/BirdFlapDown.gif"],
+    'obstacles': ['assets/ClassicMap/1Big.gif', 'assets/ClassicMap/1Small.gif', 'assets/ClassicMap/2Big.gif',
+                  'assets/ClassicMap/2Big1Small1Big.gif',
+                  'assets/ClassicMap/2Small.gif', 'assets/ClassicMap/3Big.gif', 'assets/ClassicMap/3Small.gif'],
+},
+    "forest": {
+        'background': [f'assets/ForestMap/Background/Forest{n}.gif' for n in range(1, 300)],
+        'text_color_1': 'white',
+        'text_color_2': 'white',
+        'text_color_3': 'red',
+        'y_level': -400,
+        'soundtrack': 'assets/General/ForestSoundtrack.wav',
+        'default_sprite': 'assets/ForestMap/red dino idle.gif',
+        'run': ["assets/ForestMap/red dino left up.gif", "assets/ForestMap/red dino right up.gif"],
+        'duck': ["assets/ForestMap/red dino duck.gif"],
+        'jump': ["assets/ForestMap/red dino jump.gif"],
+        'bird': ["assets/ForestMap/bird flap up.gif", "assets/ForestMap/bird flap down.gif"],
+        'obstacles': ['assets/ForestMap/rock 1.gif', 'assets/ForestMap/rock 2.gif', 'assets/ForestMap/rock 3.gif',
+                      'assets/ForestMap/rock 4.gif', 'assets/ForestMap/rock 5.gif', 'assets/ForestMap/rock 6.gif'],
+    },
+    "industrial": {
+        'background': [f'assets/IndustrialMap/Background/Industrial{n}.gif' for n in range(1, 101)],
+        'text_color_1': 'red',
+        'text_color_2': 'red',
+        'text_color_3': 'white',
+        'y_level': -300,
+        'soundtrack': 'assets/General/ForestSoundtrack.wav',
+        'default_sprite': 'assets/IndustrialMap/SonicIdle.gif',
+        'run': ["assets/IndustrialMap/SonicLeftUp.gif", "assets/IndustrialMap/SonicRightUp.gif"],
+        'duck': ["assets/IndustrialMap/SonicDuck.gif"],
+        'jump': ["assets/IndustrialMap/SonicJump.gif"],
+        'bird': ["assets/IndustrialMap/Helicopter1.gif", "assets/IndustrialMap/Helicopter2.gif"],
+        'obstacles': ['assets/IndustrialMap/Spikes1.gif', 'assets/IndustrialMap/Car2.gif',
+                      'assets/IndustrialMap/Car1.gif', 'assets/IndustrialMap/Spikes2.gif'],
+    }
+}
+
+
+def get_next(cur, asset):
+    assets_list = ASSETS_MAPPING[SELECTED_MAP][asset]  # List of gifs for the asset type
+    try:
+        return assets_list[(assets_list.index(cur) + 1) % len(assets_list)]  # Next gif in assets list
+    except:
+        return assets_list[0]  # If first time (i.e. cur not found in assets_list)
+
+
+def bring_to_front(t):  # Bring the turtle to the front (in case of an overlap) by updating it
+    t.forward(0)
 
 
 def new_shape(file, hide=False):
@@ -27,7 +89,7 @@ def new_shape(file, hide=False):
 def jump():
     global JUMP, DUCK, SPEED
     if not JUMP:
-        playsound("assets/jump sound.wav", block=False)
+        playsound("assets/General/jump sound.wav", block=False)
         DUCK = False
         JUMP = True
         SPEED = 270
@@ -78,24 +140,23 @@ def update_score():
         scorepen.penup()
 
     scorepen.goto(280, 420)
-    scorepen.color("black")
+    scorepen.color(ASSETS_MAPPING[SELECTED_MAP]["text_color_1"])
     scorepen.write(f"HIGH:{high_score:05} SCORE:{SCORE:05}", align="center", font=("Press Start 2P", 25, "normal"))
 
     turtle.tracer(1, 1)
 
 
 def update():
-    start = time.time()
     global dino, bird, cacti, paths, BIRD_YCORS, GAME_SPEED, JUMP, SPEED, SHAPE, UPDATES, SCORE, FIRSTGAME, stars, cloud, CLOUDSPEED
+
+    start = time.time()
     if SCORE <= 1000:
         GAME_SPEED = (5 + SCORE // 300)  # Caps game speed at 8 so that the game does not get too fast and unplayable
     turtle.tracer(0, 0)
-    for path in paths:
-        path.setx(path.xcor() - GAME_SPEED)
-        if path.xcor() <= -1000:
-            path.goto(1000, -300)
 
-    if UPDATES % 13 == 0:
+    if UPDATES % 6 == 0 and SELECTED_MAP != "dino": turtle.bgpic(get_next(turtle.bgpic(), "background"))
+
+    if UPDATES % 13 == 0:  # To make this code execution a bit less frequent (once every 13 updates)
         SCORE += 1
 
         if FIRSTGAME:
@@ -123,50 +184,39 @@ def update():
 
         turtle.ontimer(update_score, 1)
 
-        if DUCK and dino.ycor() == -200:
-            if SHAPE == "assets/DinoDuckLeftUp.gif":  # Change turtle leg
-                SHAPE = "assets/DinoDuckRightUp.gif"
-                dino.shape("assets/DinoDuckRightUp.gif")
-            else:
-                SHAPE = "assets/DinoDuckLeftUp.gif"
-                dino.shape("assets/DinoDuckLeftUp.gif")
+        if DUCK and dino.ycor() == ASSETS_MAPPING[SELECTED_MAP]["y_level"]:
+            dino.shape(get_next(dino.shape(), "duck"))  # Switch to duck
+        elif JUMP:
+            dino.shape(get_next(dino.shape(), "jump"))  # Switch to jump
         else:
-            if JUMP:
-                SHAPE = "assets/DinoIdle.gif"
-                dino.shape("assets/DinoIdle.gif")
-            elif SHAPE == "assets/DinoLeftUp.gif":  # Change turtle leg
-                SHAPE = "assets/DinoRightUp.gif"
-                dino.shape("assets/DinoRightUp.gif")
-            else:
-                SHAPE = "assets/DinoLeftUp.gif"
-                dino.shape("assets/DinoLeftUp.gif")
+            dino.shape(get_next(dino.shape(), "run"))  # Switch gif so that it looks like character is running
 
-        if bird.shape() == "assets/BirdFlapUp.gif":
-            bird.shape("assets/BirdFlapDown.gif")
-        else:
-            bird.shape("assets/BirdFlapUp.gif")
+        bird.shape(get_next(bird.shape(), "bird"))  # Switch bird gif for flapping
 
     if JUMP:
         SPEED = SPEED - 13.2  # Gravity
-        dino.sety(dino.ycor() + SPEED/8)  # Divide speed by 8 since we update every 8 ms to make the jump look more natural
+        dino.sety(
+            dino.ycor() + SPEED / 8)  # Divide speed by 8 since we update every 8 ms to make the jump look more natural
 
-        if dino.ycor() < -200:  # Stop jumping as dino has reached ground
-            dino.sety(-200)
+        if dino.ycor() < ASSETS_MAPPING[SELECTED_MAP]["y_level"]:  # Stop jumping as dino has reached ground
+            dino.sety(ASSETS_MAPPING[SELECTED_MAP]["y_level"])
             JUMP = False
 
     bird.setx(bird.xcor() - GAME_SPEED)
 
     if (bird.xcor() - 40 < dino.xcor() < bird.xcor() + 40) and (bird.ycor() - 90 < dino.ycor() < bird.ycor() + 90):
-        if not (bird.ycor() == -120 and DUCK):
+        if not (bird.ycor() == ASSETS_MAPPING[SELECTED_MAP]["y_level"]+80 and DUCK):
             gameover()
             return
 
     if bird.xcor() < -515 and SCORE >= 100:
         if random.randint(500, 700) == 500:  # Randomise duration between birds
             if FIRSTGAME:
-                bird.goto(cacti[-1].xcor() + 1000, -120)  # Go a random distance after last cactus at ducking position for tutorial
+                bird.goto(cacti[-1].xcor() + 1000,
+                          -120)  # Go a random distance after last cactus at ducking position for tutorial
             else:
-                bird.goto(cacti[-1].xcor() + random.randint(1000, 1200), random.choice(BIRD_YCORS))  # Go a random distance after last cactus at one of the possible y-coordinates
+                bird.goto(cacti[-1].xcor() + random.randint(1000, 1200), random.choice(
+                    BIRD_YCORS))  # Go a random distance after last cactus at one of the possible y-coordinates
 
     for cactus in cacti:
         cactus.setx(cactus.xcor() - GAME_SPEED)
@@ -180,19 +230,25 @@ def update():
                 cactus.setx(bird.xcor() + random.randint(1000, 1200))
             else:
                 cactus.setx(cacti[-1].xcor() + random.randint(350, 700))
-            cactus.shape(random.choice(cacti_gifs))
+            cactus.shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"]))
             cacti.append(cacti.pop(cacti.index(cactus)))
 
-    cloud.setx(cloud.xcor() - CLOUDSPEED)
-    if cloud.xcor() <= -530:
-        cloud.setx(530)
-        cloud.sety(random.randint(250, 450))
-        CLOUDSPEED = random.randint(1, 4)
+    if SELECTED_MAP == "dino":  # Other maps have path and sky in their background gif
+        for path in paths:
+            path.setx(path.xcor() - GAME_SPEED)
+            if path.xcor() <= -1000:
+                path.goto(1000, -300)
 
-    for star, speed in stars.items():
-        if star.xcor() < -520:  # Reset stars that exited the screen
-            star.goto(520, random.randint(0, 500))
-        star.setx(star.xcor() - speed)  # Move stars
+        cloud.setx(cloud.xcor() - CLOUDSPEED)
+        if cloud.xcor() <= -530:
+            cloud.setx(530)
+            cloud.sety(random.randint(250, 450))
+            CLOUDSPEED = random.randint(1, 4)
+
+        for star, speed in stars.items():
+            if star.xcor() < -520:  # Reset stars that exited the screen
+                star.goto(520, random.randint(0, 500))
+            star.setx(star.xcor() - speed)  # Move stars
 
     turtle.tracer(1, 1)
     UPDATES += 1
@@ -206,8 +262,9 @@ def update():
 
 
 def gameover():
+    global p
     p.terminate()
-    playsound("assets/game over.wav", block=False)
+    playsound("assets/General/game over.wav", block=False)
     save_high_score()
     turtle.tracer(0, 0)
 
@@ -218,23 +275,33 @@ def gameover():
         gameoverpen = turtle.Turtle()
         gameoverpen.hideturtle()
         gameoverpen.penup()
+    scorepen.clear()
 
     gameoverpen.goto(0, 200)
-    gameoverpen.color("black")
+    gameoverpen.color(ASSETS_MAPPING[SELECTED_MAP]["text_color_2"])
     gameoverpen.write("GAME OVER", align="center", font=("Press Start 2P", 25, "normal"))
 
     gameoverpen.goto(0, 0)
-    gameoverpen.color("gray")
+    gameoverpen.color(ASSETS_MAPPING[SELECTED_MAP]["text_color_3"])
     gameoverpen.write("Click anywhere to play again.", align="center", font=("Press Start 2P", 15, "normal"))
+
+    gameoverpen.goto(0, -60)
+    gameoverpen.color(ASSETS_MAPPING[SELECTED_MAP]["text_color_3"])
+    gameoverpen.write("Press escape to go back to main menu.", align="center", font=("Press Start 2P", 15, "normal"))
 
     turtle.tracer(1, 1)
     turtle.onscreenclick(restart)
+    turtle.onkey(lambda: title_screen(reset=True), "Escape")
     turtle.listen()
+    p = multiprocessing.Process(target=playsound, args=('assets/General/TitleScreenSoundtrack.wav',))
+    p.start()
 
 
 def restart(x, y):
-    playsound("assets/button pressed.wav", block=False)
     global paths, dino, bird, cacti, cacti_gifs, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, gameoverpen, CLOUDSPEED, stars, p
+    p = multiprocessing.Process(target=playsound, args=('assets/General/TitleScreenSoundtrack.wav',))
+    p.start()
+    playsound("assets/General/button pressed.wav", block=False)
     turtle.onscreenclick(None)
     SCORE = 0
     JUMP = False
@@ -243,72 +310,76 @@ def restart(x, y):
     UPDATES = 0
     SPEED = 0
     GAME_SPEED = 20
-    SHAPE = "assets/DinoIdle.gif"
+    SHAPE = ASSETS_MAPPING[SELECTED_MAP]["default_sprite"]
 
     turtle.tracer(0, 0)
     scorepen.clear()
     gameoverpen.clear()
-    paths[0].goto(0, -300)
-    paths[1].goto(1000, -300)
-    dino.goto(-400, -200)
-    bird.goto(-530, -120)
-    cacti[0].goto(2000, -250)
-    cacti[1].goto(2500, -250)
-    cacti[2].shape(random.choice(cacti_gifs))
-    cacti[2].goto(3000, -250)
-    cloud.goto(random.randint(-300, 400), random.randint(250, 450))
-    for star, speed in stars.items():
-        star.goto(random.randint(0, 500), random.randint(0, 500))  # Put star in random position
+    dino.goto(-400, ASSETS_MAPPING[SELECTED_MAP]["y_level"])
+    bird.goto(-530, ASSETS_MAPPING[SELECTED_MAP]["y_level"]+80)
+    cacti[0].goto(2000, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
+    cacti[1].goto(2500, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
+    cacti[2].shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"]))
+    cacti[2].goto(3000, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
+
+    if SELECTED_MAP == "dino":
+        paths[0].goto(0, -300)
+        paths[1].goto(1000, -300)
+        cloud.goto(random.randint(-300, 400), random.randint(250, 450))
+        for star, speed in stars.items():
+            star.goto(random.randint(0, 500), random.randint(0, 500))  # Put star in random position
+
     turtle.tracer(1, 1)
-    p = multiprocessing.Process(target=playsound, args=("assets/soundtrack.wav",))
+    p = multiprocessing.Process(target=playsound, args=(ASSETS_MAPPING[SELECTED_MAP]["soundtrack"],))
     p.start()
     update()
 
 
 def init_game():
     global paths, dino, bird, cacti, cloud, cacti_gifs, screen, BIRD_YCORS, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, tutorialpen, FIRSTGAME, stars, CLOUDSPEED, p
-    p = multiprocessing.Process(target=playsound, args=("assets/soundtrack.wav",))
+    p = multiprocessing.Process(target=playsound, args=(ASSETS_MAPPING[SELECTED_MAP]["soundtrack"],))
     p.start()
     # Initialise game variables
     SCORE = 0
     JUMP = False
     DUCK = False
-    FIRSTGAME = True
     CLOUDSPEED = random.randint(1, 4)
     UPDATES = 0
     SPEED = 0
     GAME_SPEED = 20
-    SHAPE = "DinoIdle.gif"
-    BIRD_YCORS = [-200, 0, -120]  # Different y-coordinates that the bird can fly in
+    SHAPE = ASSETS_MAPPING[SELECTED_MAP]["default_sprite"]
+    BIRD_YCORS = [ASSETS_MAPPING[SELECTED_MAP]["y_level"], ASSETS_MAPPING[SELECTED_MAP]["y_level"]+200, ASSETS_MAPPING[SELECTED_MAP]["y_level"]+80]  # Different y-coordinates that the bird can fly in
     cacti = []
     paths = []
 
     tutorialpen.clear()
-    tutorialpen.color("gray")
+    tutorialpen.color(ASSETS_MAPPING[SELECTED_MAP]["text_color_3"])
 
     turtle.tracer(0, 0)
-    paths.append(new_shape("assets/path.gif"))  # Initialise first path sprite
-    paths[0].goto(0, -300)
-    paths.append(new_shape("assets/path.gif"))  # Initialise second path sprite
-    paths[1].goto(1000, -300)
-    dino = new_shape("assets/DinoIdle.gif")  # Setup dino
-    dino.goto(-400, -200)
-    bird = new_shape("assets/BirdFlapUp.gif")  # Setup bird
-    bird.goto(-550, -120)
-    cacti.append(new_shape("assets/1Big.gif"))
-    cacti[0].goto(2000, -250)
-    cacti.append(new_shape("assets/1Big.gif"))
-    cacti[1].goto(2500, -250)
-    cacti.append(new_shape(random.choice(cacti_gifs)))
-    cacti[2].goto(3000, -250)
+    dino = new_shape(ASSETS_MAPPING[SELECTED_MAP]["default_sprite"])  # Setup dino
+    dino.goto(-400, ASSETS_MAPPING[SELECTED_MAP]["y_level"])
+    bird = new_shape(ASSETS_MAPPING[SELECTED_MAP]["bird"][0])  # Setup bird
+    bird.goto(-550, ASSETS_MAPPING[SELECTED_MAP]["y_level"]+80)
+    cacti.append(new_shape(ASSETS_MAPPING[SELECTED_MAP]["obstacles"][0]))
+    cacti[0].goto(2000, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
+    cacti.append(new_shape(ASSETS_MAPPING[SELECTED_MAP]["obstacles"][0]))
+    cacti[1].goto(2500, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
+    cacti.append(new_shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"])))
+    cacti[2].goto(3000, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
 
-    cloud = new_shape("assets/cloud.gif")
-    cloud.goto(random.randint(-300, 400), random.randint(250, 450))  # Put cloud in random position
-    stars = {}
-    for i in range(1, 5):
-        star = new_shape("assets/star.gif")
-        star.goto(random.randint(0, 500), random.randint(0, 500))  # Put star in random position
-        stars[star] = i  # 'i' will be the speed of the star
+    if SELECTED_MAP == "dino":  # Path, cloud and stars are not applicable for other maps.
+        paths.append(new_shape("assets/ClassicMap/path.gif"))  # Initialise first path sprite
+        paths[0].goto(0, -300)
+        paths.append(new_shape("assets/ClassicMap/path.gif"))  # Initialise second path sprite
+        paths[1].goto(1000, -300)
+
+        cloud = new_shape("assets/ClassicMap/cloud.gif")
+        cloud.goto(random.randint(-300, 400), random.randint(250, 450))  # Put cloud in random position
+        stars = {}
+        for i in range(1, 5):
+            star = new_shape("assets/ClassicMap/star.gif")
+            star.goto(random.randint(0, 500), random.randint(0, 500))  # Put star in random position
+            stars[star] = i  # 'i' will be the speed of the star
 
     screen.onkey(jump, "space")
     screen.onkeypress(duck, "Down")
@@ -319,19 +390,20 @@ def init_game():
 
 
 def skip_tutorial(*args):
-    playsound("assets/button pressed.wav", block=False)
+    playsound("assets/General/button pressed.wav", block=False)
     global SKIPPED, FIRSTGAME
     SKIPPED = True  # To skip the storyline
     for t in turtle.turtles():  # Clear everything to start game
         t.hideturtle()
     turtle.onscreenclick(None)
     init_game()
-    FIRSTGAME = False  # To skip the later tutorial
+
 
 
 def storyline(part=1):
-    global tutorialpen, screen, path, babydino, dino, kingbird, SKIPPED
+    global tutorialpen, screen, path, babydino, dino, kingbird, SKIPPED, FIRSTGAME
     if SKIPPED: return
+    FIRSTGAME = False
 
     if part == 1:
         turtle.tracer(0, 0)
@@ -343,14 +415,14 @@ def storyline(part=1):
         tutorialpen.write("Click anywhere to skip.", align="center", font=("Press Start 2P", 15, "normal"))
         tutorialpen.goto(490, 350)
 
-        path = new_shape("assets/path.gif")
+        path = new_shape("assets/ClassicMap/path.gif")
         path.goto(0, -300)
 
-        dino = new_shape("assets/DinoIdle.gif")
+        dino = new_shape("assets/ClassicMap/DinoIdle.gif")
         dino.goto(-400, -200)
-        babydino = new_shape("assets/BabyDinoIdle.gif")
+        babydino = new_shape("assets/ClassicMap/BabyDinoIdle.gif")
         babydino.goto(-330, -232)
-        kingbird = new_shape("assets/KingBirdFlapDownRight.gif")
+        kingbird = new_shape("assets/ClassicMap/KingBirdFlapDownRight.gif")
         kingbird.goto(-560, 550)
         turtle.tracer(1, 1)
         turtle.ontimer(lambda: storyline(part=2), 2000)
@@ -360,14 +432,14 @@ def storyline(part=1):
         for i in range(200):
             babydino.forward(1)
             if i % 20 == 0:
-                if babydino.shape() == "assets/BabyDinoRightUp.gif":
-                    babydino.shape("assets/BabyDinoLeftUp.gif")
+                if babydino.shape() == "assets/ClassicMap/BabyDinoRightUp.gif":
+                    babydino.shape("assets/ClassicMap/BabyDinoLeftUp.gif")
                 else:
-                    babydino.shape("assets/BabyDinoRightUp.gif")
-        babydino.shape("assets/BabyDinoIdle.gif")
+                    babydino.shape("assets/ClassicMap/BabyDinoRightUp.gif")
+        babydino.shape("assets/ClassicMap/BabyDinoIdle.gif")
         turtle.ontimer(lambda: storyline(part=3), 3500)
     elif part == 3:
-        playsound("assets/run.wav", block=False)
+        playsound("assets/General/run.wav", block=False)
         turtle.tracer(1, 1)  # King bird swoops down on baby dino
         kingbird.speed(1)
         turtle.delay(8)
@@ -378,10 +450,10 @@ def storyline(part=1):
             babydino.goto(babydino.xcor() + 1, babydino.ycor() + 0.75)
             kingbird.goto(kingbird.xcor() + 1, kingbird.ycor() + 0.75)
             if i % 150 == 0:  # Flap wing of king bird
-                if kingbird.shape() == "assets/KingBirdFlapUpRight.gif":
-                    kingbird.shape("assets/KingBirdFlapDownRight.gif")
+                if kingbird.shape() == "assets/ClassicMap/KingBirdFlapUpRight.gif":
+                    kingbird.shape("assets/ClassicMap/KingBirdFlapDownRight.gif")
                 else:
-                    kingbird.shape("assets/KingBirdFlapUpRight.gif")
+                    kingbird.shape("assets/ClassicMap/KingBirdFlapUpRight.gif")
             turtle.tracer(1, 1)
         turtle.tracer(0, 0)
 
@@ -394,37 +466,134 @@ def storyline(part=1):
             turtle.tracer(1, 1)
 
         if not SKIPPED:
+            FIRSTGAME = True  # To skip the later tutorial
             turtle.ontimer(skip_tutorial, 4000)
 
 
-def startbtn_clicked(*args):
-    global background, startbtn, exitbtn
-    playsound("assets/button pressed.wav", block=False)
+def titlebutton_clicked(btnid):
+    global SELECTED_MAP, background, startbtn, exitbtn, mapsbtn, cacti_gifs, dino_gifs, bird_gifs, bg_gifs, storyline_gifs, p, s_time
+    playsound("assets/General/button pressed.wav", block=False)
     turtle.tracer(0, 0)
 
     background.hideturtle()
     startbtn.hideturtle()
     exitbtn.hideturtle()
+    mapsbtn.hideturtle()
     startbtn.onclick(None)
     exitbtn.onclick(None)
-    storyline()
+    mapsbtn.onclick(None)
+    if btnid == 0:  # Start button
+        SELECTED_MAP = "dino"
+        p.terminate()  # Stop music
+        dino_gifs = ['assets/ClassicMap/DinoIdle.gif', 'assets/ClassicMap/DinoLeftUp.gif',
+                     'assets/ClassicMap/DinoRightUp.gif', 'assets/ClassicMap/DinoDuckLeftUp.gif',
+                     'assets/ClassicMap/DinoDuckRightUp.gif']
+        bird_gifs = ["assets/ClassicMap/BirdFlapDown.gif", "assets/ClassicMap/BirdFlapUp.gif"]
+        cacti_gifs = ['assets/ClassicMap/1Big.gif', 'assets/ClassicMap/1Small.gif', 'assets/ClassicMap/2Big.gif',
+                      'assets/ClassicMap/2Big1Small1Big.gif',
+                      'assets/ClassicMap/2Small.gif', 'assets/ClassicMap/3Big.gif', 'assets/ClassicMap/3Small.gif']
+        bg_gifs = ["assets/ClassicMap/cloud.gif", "assets/ClassicMap/star.gif"]
+        storyline_gifs = ["assets/ClassicMap/BabyDinoIdle.gif", "assets/ClassicMap/KingBirdFlapDownLeft.gif",
+                          "assets/ClassicMap/KingBirdFlapDownRight.gif",
+                          "assets/ClassicMap/KingBirdFlapUpRight.gif", "assets/ClassicMap/KingBirdFlapUpLeft.gif",
+                          "assets/ClassicMap/BabyDinoLeftUp.gif",
+                          "assets/ClassicMap/BabyDinoRightUp.gif", "assets/ClassicMap/path.gif"]
+        for gif in cacti_gifs + dino_gifs + bird_gifs + bg_gifs + storyline_gifs:
+            turtle.register_shape(gif)
+
+        storyline()
+    else:  # Maps button
+        turtle.tracer(0, 0)
+        background = new_shape("assets/General/MapsMenu.gif")
+        background.goto(0, 0)
+        turtle.tracer(1, 1)
+        turtle.onscreenclick(choose_map)
+        s_time = time.time()
+        turtle.listen()
 
 
-def title_screen():
-    global background, startbtn, exitbtn
+def choose_map(x, y):
+    global SELECTED_MAP, tutorialpen, FIRSTGAME, p
+    if time.time() - s_time <= 0.5: return  # To prevent misclicks
+
+    if -450 < x < -230 and -280 < y < 230:  # Classic map
+        SELECTED_MAP = "dino"
+        turtle.tracer(0, 0)
+        titlebutton_clicked(0)
+        gifs = []
+    elif 230 < x < 460 and -280 < y < 210:
+        FIRSTGAME = False
+        SELECTED_MAP = "forest"
+        gifs = ['assets/ForestMap/red dino idle.gif', "assets/ForestMap/red dino left up.gif",
+                "assets/ForestMap/red dino right up.gif", "assets/ForestMap/red dino duck.gif",
+                "assets/ForestMap/red dino jump.gif", "assets/ForestMap/bird flap up.gif",
+                "assets/ForestMap/bird flap down.gif", 'assets/ForestMap/rock 1.gif',
+                'assets/ForestMap/rock 2.gif', 'assets/ForestMap/rock 3.gif',
+                'assets/ForestMap/rock 4.gif', 'assets/ForestMap/rock 5.gif',
+                'assets/ForestMap/rock 6.gif']
+    elif -115 < x < 115 and -220 < y < 125:
+        FIRSTGAME = False
+        SELECTED_MAP = "industrial"
+        gifs = ['assets/IndustrialMap/SonicIdle.gif', 'assets/IndustrialMap/SonicLeftUp.gif',
+                'assets/IndustrialMap/SonicRightUp.gif', 'assets/IndustrialMap/SonicDuck.gif',
+                'assets/IndustrialMap/SonicJump.gif', "assets/IndustrialMap/Helicopter1.gif",
+                "assets/IndustrialMap/Helicopter2.gif", 'assets/IndustrialMap/Car1.gif',
+                'assets/IndustrialMap/Car2.gif', 'assets/IndustrialMap/Spikes1.gif',
+                'assets/IndustrialMap/Spikes2.gif']
+    else:
+        return
+
+    p.terminate()  # Stop music
+    playsound("assets/General/button pressed.wav", block=False)
+    tutorialpen = turtle.Turtle()
+    tutorialpen.hideturtle()
+    tutorialpen.penup()
+    screen.onclick(None)
+
+    for gif in gifs:
+        turtle.register_shape(gif)
+
     turtle.tracer(0, 0)
-    background = new_shape("assets/poster.gif")
+    background.hideturtle()
+    startbtn.hideturtle()
+    exitbtn.hideturtle()
+    mapsbtn.hideturtle()
+    startbtn.onclick(None)
+    exitbtn.onclick(None)
+    mapsbtn.onclick(None)
+    init_game()
+
+
+def title_screen(reset=False):
+    global background, startbtn, exitbtn, mapsbtn, gameoverpen, p
+    if reset:
+        playsound("assets/General/button pressed.wav", block=False)
+        turtle.onscreenclick(None)
+        turtle.onkey(None, "Escape")
+        for t in turtle.turtles():  # Clear everything
+            t.hideturtle()
+        gameoverpen.clear()
+        turtle.bgpic('nopic')
+    else:
+        p = multiprocessing.Process(target=playsound, args=('assets/General/TitleScreenSoundtrack.wav',))
+        p.start()
+    turtle.tracer(0, 0)
+    background = new_shape("assets/General/poster.gif")
     background.goto(0, 0)
-    startbtn = new_shape("assets/StartBtn.gif")
+    startbtn = new_shape("assets/General/StartBtn.gif")
     startbtn.goto(0, -100)
-    startbtn.onrelease(startbtn_clicked)
-    exitbtn = new_shape("assets/ExitBtn.gif")
-    exitbtn.goto(0, -210)
-    exitbtn.onclick(lambda x, y: exit)
+    startbtn.onrelease(lambda x, y: titlebutton_clicked(0))
+    mapsbtn = new_shape("assets/General/MapsBtn.gif")
+    mapsbtn.goto(0, -210)
+    mapsbtn.onclick(lambda x, y: titlebutton_clicked(1))
+    exitbtn = new_shape("assets/General/ExitBtn.gif")
+    exitbtn.goto(0, -310)
+    exitbtn.onclick(lambda x, y: on_close())
     turtle.tracer(1, 1)
 
 
 def on_close():  # When window close button is clicked
+    global p
     try:
         p.terminate()  # Stop the game soundtrack
         save_high_score()
@@ -445,13 +614,9 @@ if __name__ == '__main__':
     root = turtle.getcanvas().winfo_toplevel()  # Accessing root window element
     root.protocol("WM_DELETE_WINDOW", on_close)  # Setting function to be called when close window button is clicked
 
-    dino_gifs = ['assets/DinoIdle.gif', 'assets/DinoLeftUp.gif', 'assets/DinoRightUp.gif', 'assets/DinoDuckLeftUp.gif', 'assets/DinoDuckRightUp.gif']
-    bird_gifs = ["assets/BirdFlapDown.gif", "assets/BirdFlapUp.gif"]
-    cacti_gifs = ['assets/1Big.gif', 'assets/1Small.gif', 'assets/2Big.gif', 'assets/2Big1Small1Big.gif', 'assets/2Small.gif', 'assets/3Big.gif', 'assets/3Small.gif']
-    bg_gifs = ["assets/cloud.gif", "assets/star.gif"]
-    storyline_gifs = ["assets/BabyDinoIdle.gif", "assets/KingBirdFlapDownLeft.gif", "assets/KingBirdFlapDownRight.gif", "assets/KingBirdFlapUpRight.gif", "assets/KingBirdFlapUpLeft.gif", "assets/BabyDinoLeftUp.gif", "assets/BabyDinoRightUp.gif"]
-    other_gifs = ["assets/path.gif", "assets/poster.gif", "assets/StartBtn.gif", "assets/ExitBtn.gif"]
-    for gif in cacti_gifs + dino_gifs + bird_gifs + bg_gifs + storyline_gifs + other_gifs:
+    general_gifs = ["assets/General/poster.gif", "assets/General/StartBtn.gif", "assets/General/ExitBtn.gif",
+                    "assets/General/MapsBtn.gif", "assets/General/MapsMenu.gif"]
+    for gif in general_gifs:
         turtle.register_shape(gif)
 
     SKIPPED = False
