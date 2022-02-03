@@ -1,16 +1,23 @@
-# Remove background from PNG files, Convert PNG files into GIF files, Mirror the GIF file
+# Remove background from PNG files, Convert PNG files into GIF files, Resize GIF file, Mirror the GIF file
 import os
 from PIL import Image, ImageOps
 
-dir = "/Users/sachin/Downloads/convert/"  # e.g. "/Users/sachin/Downloads/convert/"
-format = ".png"  # eg. ".png"
-transparent = 0  # 0 or 1 for true or false respectively
-flip = True  # True or False
+dir = "/Users/sachin/Downloads/convert/"
+formats = [".jpeg", ".png", ".gif"]
+transparency = 0  # 0 for transparent and 1 for not transparent
+resize = True
+convert = False
+flip = False
 
 for file_name in sorted(os.listdir(dir)):
-    if file_name.endswith(format):
-        img = Image.open(dir + file_name)
-        img.save(dir + file_name.replace(format, '.gif'), format='GIF', transparency=transparent)
-        if flip:
-            img_flip = ImageOps.mirror(img)
-            img_flip.save(dir + file_name.replace('.png', '_flipped.gif'), format='GIF', transparency=0)
+    for format in formats:
+        if file_name.endswith(format):
+            img = Image.open(dir + file_name)
+            if resize:
+                img = img.resize((214, 71))
+                img.save(dir + file_name)
+            if convert:
+                img.save(dir + file_name.replace(format, '.gif'), format='GIF', transparency=transparency)
+            if flip:
+                img_flip = ImageOps.mirror(img)
+                img_flip.save(dir + file_name.replace(format, '_flipped'+format), format='GIF', transparency=0)

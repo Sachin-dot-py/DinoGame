@@ -40,13 +40,14 @@ ASSETS_MAPPING = {"dino": {
         'text_color_3': 'red',
         'y_level': -400,
         'soundtrack': 'assets/General/ForestSoundtrack.wav',
-        'default_sprite': 'assets/ForestMap/red dino idle.gif',
-        'run': ["assets/ForestMap/red dino left up.gif", "assets/ForestMap/red dino right up.gif"],
-        'duck': ["assets/ForestMap/red dino duck.gif"],
-        'jump': ["assets/ForestMap/red dino jump.gif"],
+        'default_sprite': 'assets/ForestMap/run1.gif',
+        'run': [f"assets/ForestMap/run{n}.gif" for n in range(2, 13, 2)],
+        'duck': [f"assets/ForestMap/duck{n}.gif" for n in range(1, 5)],
+        'jump': ["assets/ForestMap/jump.gif"],
         'bird': ["assets/ForestMap/bird flap up.gif", "assets/ForestMap/bird flap down.gif"],
-        'obstacles': ['assets/ForestMap/rock 1.gif', 'assets/ForestMap/rock 2.gif', 'assets/ForestMap/rock 3.gif',
-                      'assets/ForestMap/rock 4.gif', 'assets/ForestMap/rock 5.gif', 'assets/ForestMap/rock 6.gif'],
+        'obstacles': ['assets/ForestMap/rock 1.gif', 'assets/ForestMap/rock 2.gif', 'assets/ForestMap/rock 5.gif',
+                      'assets/ForestMap/rock 6.gif', 'assets/ForestMap/Logs.gif', 'assets/ForestMap/Barrel2.gif',
+                      'assets/ForestMap/Snake.gif'],
     },
     "suburb": {
         'background': [f'assets/SuburbMap/Background/Suburb{n}.gif' for n in range(1, 360)],
@@ -55,13 +56,13 @@ ASSETS_MAPPING = {"dino": {
         'text_color_3': 'white',
         'y_level': -190,
         'soundtrack': 'assets/General/SuburbSoundtrack.wav',
-        'default_sprite': 'assets/SuburbMap/SonicIdle.gif',
-        'run': ["assets/SuburbMap/SonicLeftUp.gif", "assets/SuburbMap/SonicRightUp.gif"],
-        'duck': ["assets/SuburbMap/SonicDuck.gif"],
-        'jump': ["assets/SuburbMap/SonicJump.gif"],
+        'default_sprite': 'assets/SuburbMap/idle.gif',
+        'run': [f"assets/SuburbMap/run {n}.gif" for n in range(1, 7)],
+        'duck': ["assets/SuburbMap/duck 1.gif", "assets/SuburbMap/duck 2.gif", "assets/SuburbMap/duck 3.gif"],
+        'jump': ["assets/SuburbMap/sonic jump.gif"],
         'bird': ["assets/SuburbMap/Helicopter1.gif", "assets/SuburbMap/Helicopter2.gif"],
-        'obstacles': ['assets/SuburbMap/Spikes1.gif', 'assets/SuburbMap/Car2.gif',
-                      'assets/SuburbMap/Car1.gif', 'assets/SuburbMap/Spikes2.gif'],
+        'obstacles': ['assets/SuburbMap/FireDispenser.gif', 'assets/SuburbMap/Rocket1.gif',
+                      'assets/SuburbMap/Rocket2.gif', 'assets/SuburbMap/Barrel1.gif'],
     }
 }
 
@@ -72,10 +73,6 @@ def get_next(cur, asset):
         return assets_list[(assets_list.index(cur) + 1) % len(assets_list)]  # Next gif in assets list
     except:
         return assets_list[0]  # If first time (i.e. cur not found in assets_list)
-
-
-def bring_to_front(t):  # Bring the turtle to the front (in case of an overlap) by updating it
-    t.forward(0)
 
 
 def new_shape(file, hide=False):
@@ -96,7 +93,8 @@ def jump():
 
 
 def duck():
-    global JUMP, DUCK
+    global JUMP, DUCK, SELECTED_MAP, dino, LAST_DUCK
+    LAST_DUCK = time.time()
     if not DUCK and not JUMP:
         DUCK = True
         JUMP = False
@@ -150,13 +148,17 @@ def update():
     global dino, bird, cacti, paths, BIRD_YCORS, GAME_SPEED, JUMP, SPEED, SHAPE, UPDATES, SCORE, FIRSTGAME, stars, cloud, CLOUDSPEED
 
     start = time.time()
-    if SCORE <= 1000:
+    if SELECTED_MAP == "suburb":
+        GAME_SPEED = 10
+    elif SCORE <= 1000:
         GAME_SPEED = (5 + SCORE // 300)  # Caps game speed at 8 so that the game does not get too fast and unplayable
+
     turtle.tracer(0, 0)
 
-    if UPDATES % 6 == 0 and SELECTED_MAP != "dino": turtle.bgpic(get_next(turtle.bgpic(), "background"))
+    if SELECTED_MAP != "dino" and UPDATES % 2 == 0:
+        turtle.bgpic(get_next(turtle.bgpic(), "background"))
 
-    if UPDATES % 13 == 0:  # To make this code execution a bit less frequent (once every 13 updates)
+    if (UPDATES % 6.5 == 0) or (SELECTED_MAP == "suburb" and UPDATES % 4 == 0):  # To make this code execution a bit less frequent (once every 13 updates)
         SCORE += 1
 
         if FIRSTGAME:
@@ -184,7 +186,7 @@ def update():
 
         turtle.ontimer(update_score, 1)
 
-        if DUCK and dino.ycor() == ASSETS_MAPPING[SELECTED_MAP]["y_level"]:
+        if DUCK:
             dino.shape(get_next(dino.shape(), "duck"))  # Switch to duck
         elif JUMP:
             dino.shape(get_next(dino.shape(), "jump"))  # Switch to jump
@@ -194,9 +196,11 @@ def update():
         bird.shape(get_next(bird.shape(), "bird"))  # Switch bird gif for flapping
 
     if JUMP:
-        SPEED = SPEED - 13.2  # Gravity
-        dino.sety(
-            dino.ycor() + SPEED / 8)  # Divide speed by 8 since we update every 8 ms to make the jump look more natural
+        if SELECTED_MAP == "suburb" or SELECTED_MAP == "forest":
+            SPEED = SPEED - 18.2  # Gravity
+        else:
+            SPEED = SPEED - 13.2  # Gravity'
+        dino.sety(dino.ycor() + SPEED / 8)  # Divide speed by 8 since we update every 8 ms to make the jump look more natural
 
         if dino.ycor() < ASSETS_MAPPING[SELECTED_MAP]["y_level"]:  # Stop jumping as dino has reached ground
             dino.sety(ASSETS_MAPPING[SELECTED_MAP]["y_level"])
@@ -205,18 +209,16 @@ def update():
     bird.setx(bird.xcor() - GAME_SPEED)
 
     if (bird.xcor() - 40 < dino.xcor() < bird.xcor() + 40) and (bird.ycor() - 90 < dino.ycor() < bird.ycor() + 90):
-        if not (bird.ycor() == ASSETS_MAPPING[SELECTED_MAP]["y_level"]+80 and DUCK):
+        if not (bird.ycor() == ASSETS_MAPPING[SELECTED_MAP]["y_level"] + 80 and DUCK):
             gameover()
             return
 
     if bird.xcor() < -515 and SCORE >= 100:
         if random.randint(500, 700) == 500:  # Randomise duration between birds
             if FIRSTGAME:
-                bird.goto(cacti[-1].xcor() + 1000,
-                          -120)  # Go a random distance after last cactus at ducking position for tutorial
+                bird.goto(cacti[-1].xcor() + 1000, -120)  # Go a random distance after last cactus at ducking position for tutorial
             else:
-                bird.goto(cacti[-1].xcor() + random.randint(1000, 1200), random.choice(
-                    BIRD_YCORS))  # Go a random distance after last cactus at one of the possible y-coordinates
+                bird.goto(cacti[-1].xcor() + random.randint(1000, 1200), random.choice(BIRD_YCORS))  # Go a random distance after last cactus at one of the possible y-coordinates
 
     for cactus in cacti:
         cactus.setx(cactus.xcor() - GAME_SPEED)
@@ -234,7 +236,7 @@ def update():
             cacti.append(cacti.pop(cacti.index(cactus)))
 
     if SELECTED_MAP in ["suburb", "dino"]:
-         for path in paths:
+        for path in paths:
             path.setx(path.xcor() - GAME_SPEED)
             if path.xcor() <= -1000:
                 path.goto(1000, path.ycor())
@@ -256,14 +258,17 @@ def update():
 
     # Normalise update speed so that when code takes longer to execute, the updates don't get slower
     ms_elapsed = int(round(time.time() - start, 3) * 1000)
+
     if ms_elapsed > 8:
         turtle.ontimer(update, 0)
     else:
         turtle.ontimer(update, 8 - ms_elapsed)
 
+
 def playmusic(file):
     while True:  # Repeat soundtrack until process is terminated
         playsound(file, block=True)
+
 
 def gameover():
     global p, gameoverpen
@@ -305,6 +310,7 @@ def restart(x, y):
     p.terminate()
     playsound("assets/General/button pressed.wav", block=False)
     turtle.onscreenclick(None)
+    turtle.onkey(None, "Escape")
     SCORE = 0
     JUMP = False
     DUCK = False
@@ -318,11 +324,11 @@ def restart(x, y):
     scorepen.clear()
     gameoverpen.clear()
     dino.goto(-400, ASSETS_MAPPING[SELECTED_MAP]["y_level"])
-    bird.goto(-530, ASSETS_MAPPING[SELECTED_MAP]["y_level"]+80)
-    cacti[0].goto(2000, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
-    cacti[1].goto(2500, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
+    bird.goto(-530, ASSETS_MAPPING[SELECTED_MAP]["y_level"] + 80)
+    cacti[0].goto(2000, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
+    cacti[1].goto(2500, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
     cacti[2].shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"]))
-    cacti[2].goto(3000, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
+    cacti[2].goto(3000, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
 
     if SELECTED_MAP == "suburb":
         paths[0].goto(0, -450)
@@ -354,7 +360,8 @@ def init_game():
     SPEED = 0
     GAME_SPEED = 20
     SHAPE = ASSETS_MAPPING[SELECTED_MAP]["default_sprite"]
-    BIRD_YCORS = [ASSETS_MAPPING[SELECTED_MAP]["y_level"], ASSETS_MAPPING[SELECTED_MAP]["y_level"]+200, ASSETS_MAPPING[SELECTED_MAP]["y_level"]+80]  # Different y-coordinates that the bird can fly in
+    BIRD_YCORS = [ASSETS_MAPPING[SELECTED_MAP]["y_level"], ASSETS_MAPPING[SELECTED_MAP]["y_level"] + 200,
+                  ASSETS_MAPPING[SELECTED_MAP]["y_level"] + 80]  # Different y-coordinates that the bird can fly in
     cacti = []
     paths = []
 
@@ -372,13 +379,13 @@ def init_game():
     dino = new_shape(ASSETS_MAPPING[SELECTED_MAP]["default_sprite"])  # Setup dino
     dino.goto(-400, ASSETS_MAPPING[SELECTED_MAP]["y_level"])
     bird = new_shape(ASSETS_MAPPING[SELECTED_MAP]["bird"][0])  # Setup bird
-    bird.goto(-550, ASSETS_MAPPING[SELECTED_MAP]["y_level"]+80)
+    bird.goto(-550, ASSETS_MAPPING[SELECTED_MAP]["y_level"] + 80)
     cacti.append(new_shape(ASSETS_MAPPING[SELECTED_MAP]["obstacles"][0]))
-    cacti[0].goto(2000, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
+    cacti[0].goto(2000, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
     cacti.append(new_shape(ASSETS_MAPPING[SELECTED_MAP]["obstacles"][0]))
-    cacti[1].goto(2500, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
+    cacti[1].goto(2500, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
     cacti.append(new_shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"])))
-    cacti[2].goto(3000, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
+    cacti[2].goto(3000, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
 
     if SELECTED_MAP == "dino":  # Cloud and stars are not applicable for other maps.
         paths.append(new_shape("assets/ClassicMap/path.gif"))  # Initialise first path sprite
@@ -409,7 +416,6 @@ def skip_tutorial(*args):
         t.hideturtle()
     turtle.onscreenclick(None)
     init_game()
-
 
 
 def storyline(part=1):
@@ -532,27 +538,28 @@ def choose_map(x, y):
         SELECTED_MAP = "dino"
         turtle.tracer(0, 0)
         titlebutton_clicked(0)
-        gifs = []
         return
     elif 230 < x < 460 and -280 < y < 210:
         FIRSTGAME = False
         SELECTED_MAP = "forest"
-        gifs = ['assets/ForestMap/red dino idle.gif', "assets/ForestMap/red dino left up.gif",
-                "assets/ForestMap/red dino right up.gif", "assets/ForestMap/red dino duck.gif",
-                "assets/ForestMap/red dino jump.gif", "assets/ForestMap/bird flap up.gif",
+        gifs = ["assets/ForestMap/bird flap up.gif", 'assets/ForestMap/jump.gif',
                 "assets/ForestMap/bird flap down.gif", 'assets/ForestMap/rock 1.gif',
-                'assets/ForestMap/rock 2.gif', 'assets/ForestMap/rock 3.gif',
-                'assets/ForestMap/rock 4.gif', 'assets/ForestMap/rock 5.gif',
-                'assets/ForestMap/rock 6.gif']
+                'assets/ForestMap/rock 2.gif', 'assets/ForestMap/rock 5.gif',
+                'assets/ForestMap/rock 6.gif', 'assets/ForestMap/Logs.gif',
+                'assets/ForestMap/Barrel2.gif', 'assets/ForestMap/Snake.gif',
+                ]
+        gifs += [f"assets/ForestMap/run{n}.gif" for n in range(1, 13)]
+        gifs += [f"assets/ForestMap/duck{n}.gif" for n in range(1, 5)]
     elif -115 < x < 115 and -220 < y < 125:
         FIRSTGAME = False
         SELECTED_MAP = "suburb"
-        gifs = ['assets/SuburbMap/SonicIdle.gif', 'assets/SuburbMap/SonicLeftUp.gif',
-                'assets/SuburbMap/SonicRightUp.gif', 'assets/SuburbMap/SonicDuck.gif',
-                'assets/SuburbMap/SonicJump.gif', "assets/SuburbMap/Helicopter1.gif",
-                "assets/SuburbMap/Helicopter2.gif", 'assets/SuburbMap/Car1.gif',
-                'assets/SuburbMap/Car2.gif', 'assets/SuburbMap/Spikes1.gif',
-                'assets/SuburbMap/Spikes2.gif', "assets/SuburbMap/SuburbPath.gif"]
+        gifs = ["assets/SuburbMap/idle.gif", "assets/SuburbMap/Helicopter1.gif",
+                "assets/SuburbMap/Helicopter2.gif", "assets/SuburbMap/SuburbPath.gif",
+                'assets/SuburbMap/Barrel1.gif', 'assets/SuburbMap/FireDispenser.gif',
+                'assets/SuburbMap/Rocket1.gif', 'assets/SuburbMap/Rocket2.gif',
+                "assets/SuburbMap/duck 1.gif", "assets/SuburbMap/duck 2.gif",
+                "assets/SuburbMap/duck 3.gif", "assets/SuburbMap/sonic jump.gif"]
+        gifs += [f"assets/SuburbMap/run {n}.gif" for n in range(1, 7)]
     else:
         return
 
