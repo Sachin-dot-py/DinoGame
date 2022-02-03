@@ -260,15 +260,17 @@ def update():
     else:
         turtle.ontimer(update, 8 - ms_elapsed)
 
+def playmusic(file):
+    while True:  # Repeat soundtrack until process is terminated
+        playsound(file, block=True)
 
 def gameover():
-    global p
+    global p, gameoverpen
     p.terminate()
     playsound("assets/General/game over.wav", block=False)
     save_high_score()
     turtle.tracer(0, 0)
 
-    global gameoverpen
     try:
         gameoverpen.clear()
     except:
@@ -290,17 +292,16 @@ def gameover():
     gameoverpen.write("Press escape to go back to main menu.", align="center", font=("Press Start 2P", 15, "normal"))
 
     turtle.tracer(1, 1)
+    p = multiprocessing.Process(target=playmusic, args=('assets/General/TitleScreenSoundtrack.wav',))
+    p.start()
     turtle.onscreenclick(restart)
     turtle.onkey(lambda: title_screen(reset=True), "Escape")
     turtle.listen()
-    p = multiprocessing.Process(target=playsound, args=('assets/General/TitleScreenSoundtrack.wav',))
-    p.start()
 
 
 def restart(x, y):
     global paths, dino, bird, cacti, cacti_gifs, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, gameoverpen, CLOUDSPEED, stars, p
-    p = multiprocessing.Process(target=playsound, args=('assets/General/TitleScreenSoundtrack.wav',))
-    p.start()
+    p.terminate()
     playsound("assets/General/button pressed.wav", block=False)
     turtle.onscreenclick(None)
     SCORE = 0
@@ -330,14 +331,14 @@ def restart(x, y):
             star.goto(random.randint(0, 500), random.randint(0, 500))  # Put star in random position
 
     turtle.tracer(1, 1)
-    p = multiprocessing.Process(target=playsound, args=(ASSETS_MAPPING[SELECTED_MAP]["soundtrack"],))
+    p = multiprocessing.Process(target=playmusic, args=(ASSETS_MAPPING[SELECTED_MAP]["soundtrack"],))
     p.start()
     update()
 
 
 def init_game():
     global paths, dino, bird, cacti, cloud, cacti_gifs, screen, BIRD_YCORS, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, tutorialpen, FIRSTGAME, stars, CLOUDSPEED, p
-    p = multiprocessing.Process(target=playsound, args=(ASSETS_MAPPING[SELECTED_MAP]["soundtrack"],))
+    p = multiprocessing.Process(target=playmusic, args=(ASSETS_MAPPING[SELECTED_MAP]["soundtrack"],))
     p.start()
     # Initialise game variables
     SCORE = 0
@@ -575,7 +576,7 @@ def title_screen(reset=False):
         gameoverpen.clear()
         turtle.bgpic('nopic')
     else:
-        p = multiprocessing.Process(target=playsound, args=('assets/General/TitleScreenSoundtrack.wav',))
+        p = multiprocessing.Process(target=playmusic, args=('assets/General/TitleScreenSoundtrack.wav',))
         p.start()
     turtle.tracer(0, 0)
     background = new_shape("assets/General/poster.gif")
