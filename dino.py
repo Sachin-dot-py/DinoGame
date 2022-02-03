@@ -145,7 +145,7 @@ def update_score():
 
 
 def update():
-    global dino, bird, cacti, paths, BIRD_YCORS, GAME_SPEED, JUMP, SPEED, SHAPE, UPDATES, SCORE, FIRSTGAME, stars, cloud, CLOUDSPEED
+    global dino, bird, obstacles, paths, BIRD_YCORS, GAME_SPEED, JUMP, SPEED, SHAPE, UPDATES, SCORE, FIRSTGAME, stars, cloud, CLOUDSPEED
 
     start = time.time()
     if SELECTED_MAP == "suburb":
@@ -216,24 +216,24 @@ def update():
     if bird.xcor() < -515 and SCORE >= 100:
         if random.randint(500, 700) == 500:  # Randomise duration between birds
             if FIRSTGAME:
-                bird.goto(cacti[-1].xcor() + 1000, -120)  # Go a random distance after last cactus at ducking position for tutorial
+                bird.goto(obstacles[-1].xcor() + 1000, -120)  # Go a random distance after last obstacle at ducking position for tutorial
             else:
-                bird.goto(cacti[-1].xcor() + random.randint(1000, 1200), random.choice(BIRD_YCORS))  # Go a random distance after last cactus at one of the possible y-coordinates
+                bird.goto(obstacles[-1].xcor() + random.randint(1000, 1200), random.choice(BIRD_YCORS))  # Go a random distance after last obstacle at one of the possible y-coordinates
 
-    for cactus in cacti:
-        cactus.setx(cactus.xcor() - GAME_SPEED)
+    for obstacle in obstacles:
+        obstacle.setx(obstacle.xcor() - GAME_SPEED)
 
-        if cactus.distance(dino) < 55:
+        if obstacle.distance(dino) < 55:
             gameover()
             return
 
-        if cactus.xcor() < -515:
-            if bird.xcor() > 500 and cacti[-1].xcor() < bird.xcor():
-                cactus.setx(bird.xcor() + random.randint(1000, 1200))
+        if obstacle.xcor() < -515:
+            if bird.xcor() > 500 and obstacles[-1].xcor() < bird.xcor():
+                obstacle.setx(bird.xcor() + random.randint(1000, 1200))
             else:
-                cactus.setx(cacti[-1].xcor() + random.randint(350, 700))
-            cactus.shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"]))
-            cacti.append(cacti.pop(cacti.index(cactus)))
+                obstacle.setx(obstacles[-1].xcor() + random.randint(350, 700))
+            obstacle.shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"]))
+            obstacles.append(obstacles.pop(obstacles.index(obstacle)))
 
     if SELECTED_MAP in ["suburb", "dino"]:
         for path in paths:
@@ -306,7 +306,7 @@ def gameover():
 
 
 def restart(x, y):
-    global paths, dino, bird, cacti, cacti_gifs, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, gameoverpen, CLOUDSPEED, stars, p
+    global paths, dino, bird, obstacles, obstacles_gifs, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, gameoverpen, CLOUDSPEED, stars, p
     p.terminate()
     playsound("assets/General/button pressed.wav", block=False)
     turtle.onscreenclick(None)
@@ -325,10 +325,10 @@ def restart(x, y):
     gameoverpen.clear()
     dino.goto(-400, ASSETS_MAPPING[SELECTED_MAP]["y_level"])
     bird.goto(-530, ASSETS_MAPPING[SELECTED_MAP]["y_level"] + 80)
-    cacti[0].goto(2000, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
-    cacti[1].goto(2500, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
-    cacti[2].shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"]))
-    cacti[2].goto(3000, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
+    obstacles[0].goto(2000, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
+    obstacles[1].goto(2500, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
+    obstacles[2].shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"]))
+    obstacles[2].goto(3000, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
 
     if SELECTED_MAP == "suburb":
         paths[0].goto(0, -450)
@@ -348,7 +348,7 @@ def restart(x, y):
 
 
 def init_game():
-    global paths, dino, bird, cacti, cloud, cacti_gifs, screen, BIRD_YCORS, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, tutorialpen, FIRSTGAME, stars, CLOUDSPEED, p
+    global paths, dino, bird, obstacles, cloud, obstacles_gifs, screen, BIRD_YCORS, SCORE, JUMP, DUCK, UPDATES, SPEED, GAME_SPEED, SHAPE, scorepen, tutorialpen, FIRSTGAME, stars, CLOUDSPEED, p
     p = multiprocessing.Process(target=playmusic, args=(ASSETS_MAPPING[SELECTED_MAP]["soundtrack"],))
     p.start()
     # Initialise game variables
@@ -362,7 +362,7 @@ def init_game():
     SHAPE = ASSETS_MAPPING[SELECTED_MAP]["default_sprite"]
     BIRD_YCORS = [ASSETS_MAPPING[SELECTED_MAP]["y_level"], ASSETS_MAPPING[SELECTED_MAP]["y_level"] + 200,
                   ASSETS_MAPPING[SELECTED_MAP]["y_level"] + 80]  # Different y-coordinates that the bird can fly in
-    cacti = []
+    obstacles = []
     paths = []
 
     tutorialpen.clear()
@@ -380,12 +380,12 @@ def init_game():
     dino.goto(-400, ASSETS_MAPPING[SELECTED_MAP]["y_level"])
     bird = new_shape(ASSETS_MAPPING[SELECTED_MAP]["bird"][0])  # Setup bird
     bird.goto(-550, ASSETS_MAPPING[SELECTED_MAP]["y_level"] + 80)
-    cacti.append(new_shape(ASSETS_MAPPING[SELECTED_MAP]["obstacles"][0]))
-    cacti[0].goto(2000, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
-    cacti.append(new_shape(ASSETS_MAPPING[SELECTED_MAP]["obstacles"][0]))
-    cacti[1].goto(2500, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
-    cacti.append(new_shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"])))
-    cacti[2].goto(3000, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
+    obstacles.append(new_shape(ASSETS_MAPPING[SELECTED_MAP]["obstacles"][0]))
+    obstacles[0].goto(2000, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
+    obstacles.append(new_shape(ASSETS_MAPPING[SELECTED_MAP]["obstacles"][0]))
+    obstacles[1].goto(2500, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
+    obstacles.append(new_shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"])))
+    obstacles[2].goto(3000, ASSETS_MAPPING[SELECTED_MAP]["y_level"] - 50)
 
     if SELECTED_MAP == "dino":  # Cloud and stars are not applicable for other maps.
         paths.append(new_shape("assets/ClassicMap/path.gif"))  # Initialise first path sprite
@@ -489,7 +489,7 @@ def storyline(part=1):
 
 
 def titlebutton_clicked(btnid):
-    global SELECTED_MAP, background, startbtn, exitbtn, mapsbtn, cacti_gifs, dino_gifs, bird_gifs, bg_gifs, storyline_gifs, p, s_time
+    global SELECTED_MAP, background, startbtn, exitbtn, mapsbtn, obstacles_gifs, dino_gifs, bird_gifs, bg_gifs, storyline_gifs, p, s_time
     playsound("assets/General/button pressed.wav", block=False)
     turtle.tracer(0, 0)
 
@@ -507,7 +507,7 @@ def titlebutton_clicked(btnid):
                      'assets/ClassicMap/DinoRightUp.gif', 'assets/ClassicMap/DinoDuckLeftUp.gif',
                      'assets/ClassicMap/DinoDuckRightUp.gif']
         bird_gifs = ["assets/ClassicMap/BirdFlapDown.gif", "assets/ClassicMap/BirdFlapUp.gif"]
-        cacti_gifs = ['assets/ClassicMap/1Big.gif', 'assets/ClassicMap/1Small.gif', 'assets/ClassicMap/2Big.gif',
+        obstacles_gifs = ['assets/ClassicMap/1Big.gif', 'assets/ClassicMap/1Small.gif', 'assets/ClassicMap/2Big.gif',
                       'assets/ClassicMap/2Big1Small1Big.gif',
                       'assets/ClassicMap/2Small.gif', 'assets/ClassicMap/3Big.gif', 'assets/ClassicMap/3Small.gif']
         bg_gifs = ["assets/ClassicMap/cloud.gif", "assets/ClassicMap/star.gif"]
@@ -516,7 +516,7 @@ def titlebutton_clicked(btnid):
                           "assets/ClassicMap/KingBirdFlapUpRight.gif", "assets/ClassicMap/KingBirdFlapUpLeft.gif",
                           "assets/ClassicMap/BabyDinoLeftUp.gif",
                           "assets/ClassicMap/BabyDinoRightUp.gif", "assets/ClassicMap/path.gif"]
-        for gif in cacti_gifs + dino_gifs + bird_gifs + bg_gifs + storyline_gifs:
+        for gif in obstacles_gifs + dino_gifs + bird_gifs + bg_gifs + storyline_gifs:
             turtle.register_shape(gif)
 
         storyline()
