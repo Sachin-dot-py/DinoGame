@@ -48,20 +48,20 @@ ASSETS_MAPPING = {"dino": {
         'obstacles': ['assets/ForestMap/rock 1.gif', 'assets/ForestMap/rock 2.gif', 'assets/ForestMap/rock 3.gif',
                       'assets/ForestMap/rock 4.gif', 'assets/ForestMap/rock 5.gif', 'assets/ForestMap/rock 6.gif'],
     },
-    "industrial": {
-        'background': [f'assets/IndustrialMap/Background/Industrial{n}.gif' for n in range(1, 101)],
+    "suburb": {
+        'background': [f'assets/SuburbMap/Background/Suburb{n}.gif' for n in range(1, 360)],
         'text_color_1': 'red',
         'text_color_2': 'red',
         'text_color_3': 'white',
-        'y_level': -300,
-        'soundtrack': 'assets/General/ForestSoundtrack.wav',
-        'default_sprite': 'assets/IndustrialMap/SonicIdle.gif',
-        'run': ["assets/IndustrialMap/SonicLeftUp.gif", "assets/IndustrialMap/SonicRightUp.gif"],
-        'duck': ["assets/IndustrialMap/SonicDuck.gif"],
-        'jump': ["assets/IndustrialMap/SonicJump.gif"],
-        'bird': ["assets/IndustrialMap/Helicopter1.gif", "assets/IndustrialMap/Helicopter2.gif"],
-        'obstacles': ['assets/IndustrialMap/Spikes1.gif', 'assets/IndustrialMap/Car2.gif',
-                      'assets/IndustrialMap/Car1.gif', 'assets/IndustrialMap/Spikes2.gif'],
+        'y_level': -190,
+        'soundtrack': 'assets/General/SuburbSoundtrack.wav',
+        'default_sprite': 'assets/SuburbMap/SonicIdle.gif',
+        'run': ["assets/SuburbMap/SonicLeftUp.gif", "assets/SuburbMap/SonicRightUp.gif"],
+        'duck': ["assets/SuburbMap/SonicDuck.gif"],
+        'jump': ["assets/SuburbMap/SonicJump.gif"],
+        'bird': ["assets/SuburbMap/Helicopter1.gif", "assets/SuburbMap/Helicopter2.gif"],
+        'obstacles': ['assets/SuburbMap/Spikes1.gif', 'assets/SuburbMap/Car2.gif',
+                      'assets/SuburbMap/Car1.gif', 'assets/SuburbMap/Spikes2.gif'],
     }
 }
 
@@ -233,12 +233,13 @@ def update():
             cactus.shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"]))
             cacti.append(cacti.pop(cacti.index(cactus)))
 
-    if SELECTED_MAP == "dino":  # Other maps have path and sky in their background gif
-        for path in paths:
+    if SELECTED_MAP in ["suburb", "dino"]:
+         for path in paths:
             path.setx(path.xcor() - GAME_SPEED)
             if path.xcor() <= -1000:
-                path.goto(1000, -300)
+                path.goto(1000, path.ycor())
 
+    if SELECTED_MAP == "dino":  # Other maps have sky in their background gif
         cloud.setx(cloud.xcor() - CLOUDSPEED)
         if cloud.xcor() <= -530:
             cloud.setx(530)
@@ -256,7 +257,7 @@ def update():
     # Normalise update speed so that when code takes longer to execute, the updates don't get slower
     ms_elapsed = int(round(time.time() - start, 3) * 1000)
     if ms_elapsed > 8:
-        update()
+        turtle.ontimer(update, 0)
     else:
         turtle.ontimer(update, 8 - ms_elapsed)
 
@@ -323,6 +324,10 @@ def restart(x, y):
     cacti[2].shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"]))
     cacti[2].goto(3000, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
 
+    if SELECTED_MAP == "suburb":
+        paths[0].goto(0, -450)
+        paths[1].goto(1000, -450)
+
     if SELECTED_MAP == "dino":
         paths[0].goto(0, -300)
         paths[1].goto(1000, -300)
@@ -357,6 +362,13 @@ def init_game():
     tutorialpen.color(ASSETS_MAPPING[SELECTED_MAP]["text_color_3"])
 
     turtle.tracer(0, 0)
+
+    if SELECTED_MAP == "suburb":
+        paths.append(new_shape("assets/SuburbMap/SuburbPath.gif"))  # Initialise first path sprite
+        paths[0].goto(0, -450)
+        paths.append(new_shape("assets/SuburbMap/SuburbPath.gif"))  # Initialise second path sprite
+        paths[1].goto(1000, -450)
+
     dino = new_shape(ASSETS_MAPPING[SELECTED_MAP]["default_sprite"])  # Setup dino
     dino.goto(-400, ASSETS_MAPPING[SELECTED_MAP]["y_level"])
     bird = new_shape(ASSETS_MAPPING[SELECTED_MAP]["bird"][0])  # Setup bird
@@ -368,12 +380,11 @@ def init_game():
     cacti.append(new_shape(random.choice(ASSETS_MAPPING[SELECTED_MAP]["obstacles"])))
     cacti[2].goto(3000, ASSETS_MAPPING[SELECTED_MAP]["y_level"]-50)
 
-    if SELECTED_MAP == "dino":  # Path, cloud and stars are not applicable for other maps.
+    if SELECTED_MAP == "dino":  # Cloud and stars are not applicable for other maps.
         paths.append(new_shape("assets/ClassicMap/path.gif"))  # Initialise first path sprite
         paths[0].goto(0, -300)
         paths.append(new_shape("assets/ClassicMap/path.gif"))  # Initialise second path sprite
         paths[1].goto(1000, -300)
-
         cloud = new_shape("assets/ClassicMap/cloud.gif")
         cloud.goto(random.randint(-300, 400), random.randint(250, 450))  # Put cloud in random position
         stars = {}
@@ -522,6 +533,7 @@ def choose_map(x, y):
         turtle.tracer(0, 0)
         titlebutton_clicked(0)
         gifs = []
+        return
     elif 230 < x < 460 and -280 < y < 210:
         FIRSTGAME = False
         SELECTED_MAP = "forest"
@@ -534,13 +546,13 @@ def choose_map(x, y):
                 'assets/ForestMap/rock 6.gif']
     elif -115 < x < 115 and -220 < y < 125:
         FIRSTGAME = False
-        SELECTED_MAP = "industrial"
-        gifs = ['assets/IndustrialMap/SonicIdle.gif', 'assets/IndustrialMap/SonicLeftUp.gif',
-                'assets/IndustrialMap/SonicRightUp.gif', 'assets/IndustrialMap/SonicDuck.gif',
-                'assets/IndustrialMap/SonicJump.gif', "assets/IndustrialMap/Helicopter1.gif",
-                "assets/IndustrialMap/Helicopter2.gif", 'assets/IndustrialMap/Car1.gif',
-                'assets/IndustrialMap/Car2.gif', 'assets/IndustrialMap/Spikes1.gif',
-                'assets/IndustrialMap/Spikes2.gif']
+        SELECTED_MAP = "suburb"
+        gifs = ['assets/SuburbMap/SonicIdle.gif', 'assets/SuburbMap/SonicLeftUp.gif',
+                'assets/SuburbMap/SonicRightUp.gif', 'assets/SuburbMap/SonicDuck.gif',
+                'assets/SuburbMap/SonicJump.gif', "assets/SuburbMap/Helicopter1.gif",
+                "assets/SuburbMap/Helicopter2.gif", 'assets/SuburbMap/Car1.gif',
+                'assets/SuburbMap/Car2.gif', 'assets/SuburbMap/Spikes1.gif',
+                'assets/SuburbMap/Spikes2.gif', "assets/SuburbMap/SuburbPath.gif"]
     else:
         return
 
