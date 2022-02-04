@@ -158,7 +158,7 @@ def update():
     if SELECTED_MAP != "dino" and UPDATES % 2 == 0:
         turtle.bgpic(get_next(turtle.bgpic(), "background"))
 
-    if (UPDATES % 6.5 == 0) or (SELECTED_MAP == "suburb" and UPDATES % 4 == 0):  # To make this code execution a bit less frequent (once every 13 updates)
+    if (UPDATES % 6.5 == 0) or (SELECTED_MAP == "suburb" and UPDATES % 4 == 0):  # To make this code execution a bit less frequent
         SCORE += 1
 
         if FIRSTGAME:
@@ -508,8 +508,8 @@ def titlebutton_clicked(btnid):
                      'assets/ClassicMap/DinoDuckRightUp.gif']
         bird_gifs = ["assets/ClassicMap/BirdFlapDown.gif", "assets/ClassicMap/BirdFlapUp.gif"]
         obstacles_gifs = ['assets/ClassicMap/1Big.gif', 'assets/ClassicMap/1Small.gif', 'assets/ClassicMap/2Big.gif',
-                      'assets/ClassicMap/2Big1Small1Big.gif',
-                      'assets/ClassicMap/2Small.gif', 'assets/ClassicMap/3Big.gif', 'assets/ClassicMap/3Small.gif']
+                          'assets/ClassicMap/2Big1Small1Big.gif', 'assets/ClassicMap/2Small.gif',
+                          'assets/ClassicMap/3Big.gif', 'assets/ClassicMap/3Small.gif']
         bg_gifs = ["assets/ClassicMap/cloud.gif", "assets/ClassicMap/star.gif"]
         storyline_gifs = ["assets/ClassicMap/BabyDinoIdle.gif", "assets/ClassicMap/KingBirdFlapDownLeft.gif",
                           "assets/ClassicMap/KingBirdFlapDownRight.gif",
@@ -531,11 +531,12 @@ def titlebutton_clicked(btnid):
 
 
 def choose_map(x, y):
-    global SELECTED_MAP, tutorialpen, FIRSTGAME, p
+    global SELECTED_MAP, tutorialpen, FIRSTGAME, SKIPPED, p
     if time.time() - s_time <= 0.5: return  # To prevent misclicks
 
     if -450 < x < -230 and -280 < y < 230:  # Classic map
         SELECTED_MAP = "dino"
+        SKIPPED = False
         turtle.tracer(0, 0)
         titlebutton_clicked(0)
         return
@@ -546,8 +547,7 @@ def choose_map(x, y):
                 "assets/ForestMap/bird flap down.gif", 'assets/ForestMap/rock 1.gif',
                 'assets/ForestMap/rock 2.gif', 'assets/ForestMap/rock 5.gif',
                 'assets/ForestMap/rock 6.gif', 'assets/ForestMap/Logs.gif',
-                'assets/ForestMap/Barrel2.gif', 'assets/ForestMap/Snake.gif',
-                ]
+                'assets/ForestMap/Barrel2.gif', 'assets/ForestMap/Snake.gif']
         gifs += [f"assets/ForestMap/run{n}.gif" for n in range(1, 13)]
         gifs += [f"assets/ForestMap/duck{n}.gif" for n in range(1, 5)]
     elif -115 < x < 115 and -220 < y < 125:
