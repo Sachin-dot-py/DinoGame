@@ -53,7 +53,7 @@ ASSETS_MAPPING = {"dino": {
         'background': [f'assets/SuburbMap/Background/Suburb{n}.gif' for n in range(1, 360)],
         'text_color_1': 'red',
         'text_color_2': 'red',
-        'text_color_3': 'white',
+        'text_color_3': 'black',
         'y_level': -190,
         'soundtrack': 'assets/General/SuburbSoundtrack.wav',
         'default_sprite': 'assets/SuburbMap/idle.gif',
@@ -622,7 +622,7 @@ def on_close():  # When window close button is clicked
     except:
         pass  # If it is prior to the game starting, save_high_score would cause an error
     finally:
-        exit() # End the program
+        exit()  # End the program
 
 
 if __name__ == '__main__':
