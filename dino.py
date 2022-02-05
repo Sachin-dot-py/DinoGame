@@ -497,7 +497,7 @@ def titlebutton_clicked(btnid):
     startbtn.hideturtle()
     exitbtn.hideturtle()
     mapsbtn.hideturtle()
-    startbtn.onclick(None)
+    startbtn.onrelease(None)
     exitbtn.onclick(None)
     mapsbtn.onclick(None)
     if btnid == 0:  # Start button
@@ -579,7 +579,7 @@ def choose_map(x, y):
     startbtn.hideturtle()
     exitbtn.hideturtle()
     mapsbtn.hideturtle()
-    startbtn.onclick(None)
+    startbtn.onrelease(None)
     exitbtn.onclick(None)
     mapsbtn.onclick(None)
     init_game()
