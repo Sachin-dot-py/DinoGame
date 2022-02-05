@@ -31,7 +31,7 @@ ASSETS_MAPPING = {"dino": {
     'bird': ["assets/ClassicMap/BirdFlapUp.gif", "assets/ClassicMap/BirdFlapDown.gif"],
     'obstacles': ['assets/ClassicMap/1Big.gif', 'assets/ClassicMap/1Small.gif', 'assets/ClassicMap/2Big.gif',
                   'assets/ClassicMap/2Big1Small1Big.gif',
-                  'assets/ClassicMap/2Small.gif', 'assets/ClassicMap/3Big.gif', 'assets/ClassicMap/3Small.gif'],
+                  'assets/ClassicMap/2Small.gif', 'assets/ClassicMap/3Big.gif', 'assets/ClassicMap/3Small.gif']
 },
     "forest": {
         'background': [f'assets/ForestMap/Background/Forest{n}.gif' for n in range(1, 300)],
@@ -45,9 +45,9 @@ ASSETS_MAPPING = {"dino": {
         'duck': [f"assets/ForestMap/duck{n}.gif" for n in range(1, 5)],
         'jump': ["assets/ForestMap/jump.gif"],
         'bird': ["assets/ForestMap/bird flap up.gif", "assets/ForestMap/bird flap down.gif"],
-        'obstacles': ['assets/ForestMap/rock 1.gif', 'assets/ForestMap/rock 2.gif', 'assets/ForestMap/rock 5.gif',
-                      'assets/ForestMap/rock 6.gif', 'assets/ForestMap/Logs.gif', 'assets/ForestMap/Barrel2.gif',
-                      'assets/ForestMap/Snake.gif'],
+        'obstacles': ['assets/ForestMap/rock 1.gif', 'assets/ForestMap/rock 2.gif', 'assets/ForestMap/rock 3.gif',
+                      'assets/ForestMap/rock 4.gif', 'assets/ForestMap/Logs.gif', 'assets/ForestMap/Barrel2.gif',
+                      'assets/ForestMap/Snake.gif', 'assets/ForestMap/TreeStump.gif']
     },
     "suburb": {
         'background': [f'assets/SuburbMap/Background/Suburb{n}.gif' for n in range(1, 360)],
@@ -62,7 +62,7 @@ ASSETS_MAPPING = {"dino": {
         'jump': ["assets/SuburbMap/sonic jump.gif"],
         'bird': ["assets/SuburbMap/Helicopter1.gif", "assets/SuburbMap/Helicopter2.gif"],
         'obstacles': ['assets/SuburbMap/FireDispenser.gif', 'assets/SuburbMap/Rocket1.gif',
-                      'assets/SuburbMap/Rocket2.gif', 'assets/SuburbMap/Barrel1.gif'],
+                      'assets/SuburbMap/Rocket2.gif', 'assets/SuburbMap/Barrel1.gif']
     }
 }
 
@@ -93,8 +93,7 @@ def jump():
 
 
 def duck():
-    global JUMP, DUCK, SELECTED_MAP, dino, LAST_DUCK
-    LAST_DUCK = time.time()
+    global JUMP, DUCK
     if not DUCK and not JUMP:
         DUCK = True
         JUMP = False
@@ -124,12 +123,13 @@ def save_high_score():
 
 
 def update_score():
+    global scorepen
+    turtle.tracer(0, 0)
+
     high_score = get_high_score()
     if SCORE > high_score:
         high_score = SCORE
 
-    turtle.tracer(0, 0)
-    global scorepen
     try:
         scorepen.clear()
     except:
@@ -177,7 +177,7 @@ def update():
                 for char in "Press DOWN KEY to duck!":  # Instructions on how to duck
                     string += char  # Shows each character one by one for an effect
                     tutorialpen.write(string, align="right", font=("Press Start 2P", 25, "normal"))
-                    turtle.tracer(1, 1)
+                    turtle.update()
                     turtle.tracer(0, 0)
                     tutorialpen.clear()
                 time.sleep(4)
@@ -257,7 +257,7 @@ def update():
     UPDATES += 1
 
     # Normalise update speed so that when code takes longer to execute, the updates don't get slower
-    ms_elapsed = int(round(time.time() - start, 3) * 1000)
+    ms_elapsed = int((time.time() - start) * 1000)
 
     if ms_elapsed > 8:
         turtle.ontimer(update, 0)
@@ -338,7 +338,7 @@ def restart(x, y):
         paths[0].goto(0, -300)
         paths[1].goto(1000, -300)
         cloud.goto(random.randint(-300, 400), random.randint(250, 450))
-        for star, speed in stars.items():
+        for star in stars.keys():
             star.goto(random.randint(0, 500), random.randint(0, 500))  # Put star in random position
 
     turtle.tracer(1, 1)
@@ -361,7 +361,7 @@ def init_game():
     GAME_SPEED = 20
     SHAPE = ASSETS_MAPPING[SELECTED_MAP]["default_sprite"]
     BIRD_YCORS = [ASSETS_MAPPING[SELECTED_MAP]["y_level"], ASSETS_MAPPING[SELECTED_MAP]["y_level"] + 200,
-                  ASSETS_MAPPING[SELECTED_MAP]["y_level"] + 80]  # Different y-coordinates that the bird can fly in
+                  ASSETS_MAPPING[SELECTED_MAP]["y_level"] + 80]  # Different y-coordinates that the bird can fly at
     obstacles = []
     paths = []
 
@@ -545,9 +545,10 @@ def choose_map(x, y):
         SELECTED_MAP = "forest"
         gifs = ["assets/ForestMap/bird flap up.gif", 'assets/ForestMap/jump.gif',
                 "assets/ForestMap/bird flap down.gif", 'assets/ForestMap/rock 1.gif',
-                'assets/ForestMap/rock 2.gif', 'assets/ForestMap/rock 5.gif',
-                'assets/ForestMap/rock 6.gif', 'assets/ForestMap/Logs.gif',
-                'assets/ForestMap/Barrel2.gif', 'assets/ForestMap/Snake.gif']
+                'assets/ForestMap/rock 2.gif', 'assets/ForestMap/rock 3.gif',
+                'assets/ForestMap/rock 4.gif', 'assets/ForestMap/Logs.gif',
+                'assets/ForestMap/Barrel2.gif', 'assets/ForestMap/Snake.gif',
+                'assets/ForestMap/TreeStump.gif']
         gifs += [f"assets/ForestMap/run{n}.gif" for n in range(1, 13)]
         gifs += [f"assets/ForestMap/duck{n}.gif" for n in range(1, 5)]
     elif -115 < x < 115 and -220 < y < 125:
@@ -616,11 +617,11 @@ def on_close():  # When window close button is clicked
     global p
     try:
         p.terminate()  # Stop the game soundtrack
-        save_high_score()
+        save_high_score() # Save the current high score (if applicable)
     except:
-        pass  # If it is prior to the game starting
+        pass  # If it is prior to the game starting, save_high_score would cause an error
     finally:
-        exit()
+        exit() # End the program
 
 
 if __name__ == '__main__':
