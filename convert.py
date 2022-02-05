@@ -14,10 +14,10 @@ for file_name in sorted(os.listdir(dir)):
         if file_name.endswith(format):
             img = Image.open(dir + file_name)
             if resize:
-                img = img.resize((214, 71))
+                img = img.resize((100, 80))
                 img.save(dir + file_name)
             if convert:
                 img.save(dir + file_name.replace(format, '.gif'), format='GIF', transparency=transparency)
             if flip:
                 img_flip = ImageOps.mirror(img)
-                img_flip.save(dir + file_name.replace(format, '_flipped'+format), format='GIF', transparency=0)
+                img_flip.save(dir + file_name.replace(format, '_flipped'+format), format='GIF', transparency=transparency)
