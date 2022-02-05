@@ -271,7 +271,7 @@ def playmusic(file):
 
 
 def gameover():
-    global p, gameoverpen
+    global p, gameoverpen, SELECTED_MAP, SKIPPED
     p.terminate()
     playsound("assets/General/game over.wav", block=False)
     save_high_score()
@@ -300,6 +300,7 @@ def gameover():
     turtle.tracer(1, 1)
     p = multiprocessing.Process(target=playmusic, args=('assets/General/TitleScreenSoundtrack.wav',))
     p.start()
+    if SELECTED_MAP == "dino": SKIPPED = False
     turtle.onscreenclick(restart)
     turtle.onkey(lambda: title_screen(reset=True), "Escape")
     turtle.listen()
