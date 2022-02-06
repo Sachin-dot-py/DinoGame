@@ -9,12 +9,21 @@ import time  # For time.time
 import multiprocessing  # To play sound in thread to stop it as required
 import os
 import urllib.request
+from sys import platform
 
 try:
     from playsound import playsound  # To play sound effects
 except:  # If module is not found on system
     print("The 'playsound' module was not found on your system. Attempting to install the module using pip.")
     os.system("pip install playsound")
+    from playsound import playsound
+
+
+if platform == "darwin":  # If the OS is MacOS (since PyObjC is only required for MacOS)
+    try:
+        import objc  # Dependancy for playsound module on MacOS
+    except:
+        os.system("pip3 install PyObjC")
 
 SELECTED_MAP = "dino"  # Default map
 ASSETS_MAPPING = {"dino": {
