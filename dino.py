@@ -1,7 +1,6 @@
 # NOTE: Before running the game:
 # 1. Install the "PressStart2P-Regular.ttf" font (stored in the assets folder) on your system
 # 2. Install the "playsound" module using pip
-# Assets from Itch.io - https://halestorm512.itch.io/chrome-dinosaur-game-remake
 # Font from Google Fonts - https://fonts.google.com/specimen/Press+Start+2P
 
 import turtle
@@ -618,7 +617,7 @@ def on_close():  # When window close button is clicked
     global p
     try:
         p.terminate()  # Stop the game soundtrack
-        save_high_score() # Save the current high score (if applicable)
+        save_high_score()  # Save the current high score (if applicable)
     except:
         pass  # If it is prior to the game starting, save_high_score would cause an error
     finally:
